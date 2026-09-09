@@ -10,7 +10,7 @@ int main() {
 
         system("clear");
 
-        cout << "====== JUEGO DILEMA DEL PRISIONERO ======\n\n";
+        cout << "------ JUEGO DILEMA DEL PRISIONERO (Modificado por Ernesto) ------\n\n";
         cout << "1.- Opcion 1\n";
         cout << "2.- Opcion 2\n";
         cout << "3.- Opcion 3\n";
