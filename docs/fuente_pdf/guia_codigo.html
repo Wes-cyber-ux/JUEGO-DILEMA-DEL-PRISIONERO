@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Guía del código - Dilema del Prisionero</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  :root { --ink:#1d2330; --muted:#5b6475; --line:#d6dbe4; --accent:#1f5fa8; --soft:#eef3fa; --c:#2e7d4f; --cbg:#dcefe3; --t:#b3412e; --tbg:#f7dcd6; --warn:#fff8e6; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Calibri, Arial, sans-serif; color: var(--ink); font-size: 10.3pt; line-height: 1.5; margin: 0; background: #fff; }
+  h1 { font-size: 24pt; color: var(--accent); margin: 0; }
+  h2 { font-size: 15pt; color: #fff; background: var(--accent); padding: 6px 10px; border-radius: 4px; margin: 0 0 12px; page-break-after: avoid; }
+  h3 { font-size: 12pt; color: var(--accent); margin: 16px 0 6px; page-break-after: avoid; }
+  p { margin: 6px 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9.3pt; background: #f2f4f8; padding: 0 3px; border-radius: 3px; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.7pt; line-height: 1.4; background: #f6f8fb; border: 1px solid var(--line); padding: 8px 10px; white-space: pre-wrap; page-break-inside: avoid; margin: 8px 0; counter-reset: ln; }
+  pre .cm { color: #6a7a8c; font-style: italic; }
+  pre .hl { background: #fff1b8; display: inline-block; width: 100%; }
+  pre .n { display: inline-block; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: var(--accent); color: #fff; font-size: 8pt; font-family: "Segoe UI", sans-serif; margin-left: 6px; }
+  .pill { display: inline-block; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 50%; background: var(--accent); color: #fff; font-size: 8pt; margin-right: 4px; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 9.3pt; page-break-inside: avoid; }
+  th, td { border: 1px solid var(--line); padding: 4px 6px; vertical-align: top; text-align: left; }
+  th { background: var(--soft); }
+  .pb { page-break-before: always; }
+  .nobreak { page-break-inside: avoid; }
+  ul, ol { margin: 6px 0 6px 20px; padding: 0; }
+  li { margin: 3px 0; }
+
+  .why { border-left: 4px solid var(--c); background: #f1f8f3; padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }
+  .why b:first-child { color: var(--c); }
+  .try { border: 1.5px dashed var(--accent); background: #f7faff; padding: 7px 10px; margin: 10px 0; border-radius: 6px; page-break-inside: avoid; }
+  .try .tt { font-weight: 700; color: var(--accent); }
+  .warn { border-left: 4px solid #c99a1c; background: var(--warn); padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }
+  .back { font-size: 8.5pt; }
+
+  /* Celdas de memoria */
+  .mem { display: flex; flex-wrap: wrap; gap: 0; margin: 6px 0 2px; }
+  .cell { border: 1px solid #8793a6; min-width: 34px; text-align: center; font-family: Consolas, monospace; font-size: 9pt; }
+  .cell + .cell { border-left: 0; }
+  .cell .v { padding: 3px 4px; font-weight: 700; }
+  .cell .i { font-size: 7.5pt; color: var(--muted); background: #f2f4f8; border-top: 1px solid #c9d0db; padding: 1px 2px; }
+  .cell.C .v { background: var(--cbg); color: var(--c); }
+  .cell.T .v { background: var(--tbg); color: var(--t); }
+  .cell.e .v { color: #aab; }
+  .cell.cur { outline: 2.5px solid #c99a1c; outline-offset: -1px; position: relative; z-index: 1; }
+  .cell.wide { min-width: 70px; }
+  .memlbl { font-family: Consolas, monospace; font-size: 9pt; margin-top: 6px; }
+  .C { color: var(--c); font-weight: 700; } .T { color: var(--t); font-weight: 700; }
+
+  /* Struct */
+  .struct { border: 2px solid var(--accent); border-radius: 6px; overflow: hidden; width: 100%; page-break-inside: avoid; margin: 8px 0; }
+  .struct .hd { background: var(--accent); color: #fff; padding: 4px 10px; font-family: Consolas, monospace; font-weight: 700; }
+  .struct .grp { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .struct .grp > div { padding: 6px 10px; border-right: 1px solid var(--line); font-size: 9pt; }
+  .struct .grp > div:last-child { border-right: 0; }
+  .struct .grp h4 { margin: 0 0 3px; font-size: 9pt; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .struct .f { font-family: Consolas, monospace; font-size: 8.8pt; }
+
+  /* Triangulo del torneo */
+  .grid8 td, .grid8 th { text-align: center; width: 11%; padding: 3px; font-size: 8.8pt; }
+  .grid8 td.play { background: var(--soft); color: var(--accent); font-weight: 700; }
+  .grid8 td.self { background: #e4e7ec; }
+  .grid8 td.mirror { color: #aab; font-size: 8pt; }
+
+  /* Portada */
+  .cover { height: 255mm; display: flex; flex-direction: column; justify-content: center; }
+  .cover .kicker { color: var(--muted); text-transform: uppercase; letter-spacing: 2px; font-size: 11pt; }
+  .cover .sub { font-size: 13pt; color: var(--muted); margin-top: 6px; }
+  .cover .how { margin-top: 18mm; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; background: #fafbfd; }
+  .toc { columns: 2; column-gap: 24px; font-size: 10pt; }
+  .toc li { break-inside: avoid; list-style: none; margin: 3px 0; }
+  .toc a { border: 0; color: var(--ink); }
+  .toc a b { color: var(--accent); }
+
+  .gloss td:first-child { white-space: nowrap; font-family: Consolas, monospace; font-size: 8.8pt; }
+  .trace td, .trace th { text-align: center; font-size: 8.8pt; padding: 3px; }
+  .trace td.l { text-align: left; }
+  .flowline { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 9pt; margin: 6px 0; }
+  .flowline span.b { border: 1.5px solid var(--accent); border-radius: 4px; padding: 2px 7px; background: #fff; font-family: Consolas, monospace; font-size: 8.5pt; }
+</style>
+</head>
+<body>
+
+<!-- ============================ PORTADA ============================ -->
+<section class="cover">
+  <div class="kicker">Proyecto 1 · Programación II</div>
+  <h1>Cómo funciona el código<br>del Torneo del Dilema del Prisionero</h1>
+  <div class="sub">Guía para entender cada variable, arreglo y función, y por qué están ahí</div>
+
+  <div class="how">
+    <b>Cómo usar esta guía (es interactiva):</b>
+    <ul>
+      <li>Todo lo que está <a href="#g-numeroRondas">subrayado con puntos</a> es un <b>enlace</b>: al hacer clic saltas a la explicación de esa variable, función o sección. En el lector de PDF vuelve atrás con <b>Alt + ←</b>.</li>
+      <li>Los recuadros <span style="color:var(--c);font-weight:700">¿Por qué?</span> explican la razón de cada decisión de diseño.</li>
+      <li>Los recuadros <span style="color:var(--accent);font-weight:700">Pruébalo</span> son preguntas para que traces el código tú mismo. Intenta responder antes de hacer clic en la respuesta.</li>
+      <li>Los dibujos de <b>celdas</b> muestran cómo están los arreglos en memoria: arriba el valor, abajo el índice.</li>
+    </ul>
+  </div>
+
+  <h3 style="margin-top:12mm">Contenido</h3>
+  <ol class="toc">
+    <li><a href="#s1"><b>1.</b> El programa en 30 segundos</a></li>
+    <li><a href="#s2"><b>2.</b> Las constantes: por qué 8 y 201 (y por qué no hay máximo)</a></li>
+    <li><a href="#s3"><b>3.</b> El struct Estrategia (la “ficha”)</a></li>
+    <li><a href="#s4"><b>4.</b> El puntero a función FuncionDecision</a></li>
+    <li><a href="#s5"><b>5.</b> Todos los arreglos, dibujados</a></li>
+    <li><a href="#s6"><b>6.</b> La regla de los índices: N − 1 y N − 2</a></li>
+    <li><a href="#s7"><b>7.</b> Las 8 estrategias por dentro</a></li>
+    <li><a href="#s8"><b>8.</b> Una partida, ronda por ronda</a></li>
+    <li><a href="#s9"><b>9.</b> La matriz de pagos y el paso por referencia</a></li>
+    <li><a href="#s10"><b>10.</b> El torneo: por qué j = i + 1</a></li>
+    <li><a href="#s11"><b>11.</b> Estadísticas: victorias y porcentajes</a></li>
+    <li><a href="#s12"><b>12.</b> El ranking: burbuja sobre índices</a></li>
+    <li><a href="#s13"><b>13.</b> Lectura validada y salida por pantalla</a></li>
+    <li><a href="#s14"><b>14.</b> Glosario de variables A–Z</a></li>
+    <li><a href="#s15"><b>15.</b> Respuestas de los “Pruébalo”</a></li>
+  </ol>
+</section>
+
+<!-- ============================ 1 ============================ -->
+<section class="pb" id="s1">
+  <h2>1. El programa en 30 segundos</h2>
+  <p>Todo empieza en <code>main_torneo.cpp</code>. La función <code>main()</code> no tiene lógica del juego: es un <b>director</b> que llama a otras funciones en orden. Cada número te lleva a la sección que explica ese paso.</p>
+<pre>int main()
+{
+    srand(time(0));                              <span class="cm">// semilla del azar</span>          <a class="n" href="#s7-ale">7</a>
+
+    Estrategia estrategias[NUM_ESTRATEGIAS];     <span class="cm">// los 8 jugadores</span>        <a class="n" href="#s5">5</a>
+    int ranking[NUM_ESTRATEGIAS];                <span class="cm">// orden final</span>             <a class="n" href="#s12">12</a>
+
+    int numeroRondas = leerNumeroRondas();       <span class="cm">// pedir rondas</span>            <a class="n" href="#s13">13</a>
+
+    inicializarEstrategias(estrategias);         <span class="cm">// llenar las fichas</span>       <a class="n" href="#s5">5</a>
+    ejecutarTorneo(estrategias, numeroRondas);   <span class="cm">// 28 partidas</span>             <a class="n" href="#s10">10</a>
+    calcularEstadisticas(estrategias);           <span class="cm">// G / P / E y %</span>           <a class="n" href="#s11">11</a>
+    ordenarRanking(estrategias, ranking);        <span class="cm">// de mayor a menor</span>        <a class="n" href="#s12">12</a>
+
+    mostrarDetalleTorneo(estrategias, ranking);  <span class="cm">// imprimir</span>                <a class="n" href="#s13">13</a>
+    mostrarRanking(estrategias, ranking, numeroRondas);
+    mostrarGanador(estrategias, ranking);
+    return 0;
+}</pre>
+
+  <h3>El viaje de los datos</h3>
+  <p>Piensa en el programa como una cadena de montaje. Cada función recibe el arreglo <a href="#g-estrategias">estrategias</a>, le escribe algo y se lo pasa a la siguiente:</p>
+  <table>
+    <tr><th>Paso</th><th>Función</th><th>¿Qué campos de cada <a href="#s3">Estrategia</a> llena?</th></tr>
+    <tr><td>1</td><td><code>inicializarEstrategias</code></td><td><code>id</code>, <code>nombre</code>, <code>decidir</code>; todo lo demás en 0</td></tr>
+    <tr><td>2</td><td><code>ejecutarTorneo</code> → <code>ejecutarPartida</code></td><td><code>puntosContra[]</code>, <code>puntajeTotal</code>, <code>vecesC</code>, <code>vecesT</code></td></tr>
+    <tr><td>3</td><td><code>calcularEstadisticas</code></td><td><code>victorias</code>, <code>derrotas</code>, <code>empates</code>, <code>porcentajeC</code>, <code>porcentajeT</code></td></tr>
+    <tr><td>4</td><td><code>ordenarRanking</code></td><td>Ninguno: llena el arreglo aparte <a href="#g-ranking">ranking</a></td></tr>
+    <tr><td>5</td><td><code>mostrar...</code></td><td>Ninguno: solo lee (por eso reciben <code>const</code>)</td></tr>
+  </table>
+  <div class="why"><b>¿Por qué está dividido en tantos archivos?</b> Cada archivo <code>.h/.cpp</code> tiene una sola responsabilidad. El <code>.h</code> es la “promesa” (qué funciones existen y qué reciben) y el <code>.cpp</code> es el “cómo”. Así, si quieres cambiar la matriz de pagos, solo tocas <code>matriz_pagos.cpp</code> y nada más se rompe.</div>
+
+  <h3>Mapa de archivos</h3>
+  <table>
+    <tr><th>Archivo</th><th>Qué contiene</th><th>Sección</th></tr>
+    <tr><td><code>tipos_torneo.h</code></td><td>Constantes, <code>FuncionDecision</code>, <code>struct Estrategia</code></td><td><a href="#s2">2</a>, <a href="#s3">3</a>, <a href="#s4">4</a></td></tr>
+    <tr><td><code>estrategias_juego.cpp</code></td><td>Las 8 funciones <code>decidirXxx</code> e <code>inicializarEstrategias</code></td><td><a href="#s7">7</a>, <a href="#s5">5</a></td></tr>
+    <tr><td><code>partida_iterada.cpp</code></td><td><code>ejecutarPartida</code>, <code>registrarJugada</code></td><td><a href="#s8">8</a></td></tr>
+    <tr><td><code>matriz_pagos.cpp</code></td><td><code>calcularPuntosRonda</code></td><td><a href="#s9">9</a></td></tr>
+    <tr><td><code>torneo_round_robin.cpp</code></td><td><code>ejecutarTorneo</code></td><td><a href="#s10">10</a></td></tr>
+    <tr><td><code>estadisticas_torneo.cpp</code></td><td><code>calcularEstadisticas</code>, <code>ordenarRanking</code></td><td><a href="#s11">11</a>, <a href="#s12">12</a></td></tr>
+    <tr><td><code>lectura_rondas.cpp</code>, <code>reporte_resultados.cpp</code></td><td>Entrada por teclado y salida por pantalla</td><td><a href="#s13">13</a></td></tr>
+  </table>
+</section>
+
+<!-- ============================ 2 ============================ -->
+<section class="pb" id="s2">
+  <h2>2. Las constantes: por qué 8 y 201 (y por qué no hay máximo)</h2>
+<pre>const int NUM_ESTRATEGIAS = 8;
+const int MIN_RONDAS = 201;   <span class="cm">// no hay MAX_RONDAS</span></pre>
+  <table>
+    <tr><th>Constante</th><th>Valor</th><th>¿Dónde se usa?</th><th>¿Por qué ese valor?</th></tr>
+    <tr id="g-NUM_ESTRATEGIAS"><td><code>NUM_ESTRATEGIAS</code></td><td>8</td><td>Tamaño de <a href="#g-estrategias">estrategias</a>, <a href="#g-ranking">ranking</a>, <a href="#g-puntosContra">puntosContra</a> y límite de todos los <code>for</code> del torneo.</td><td>6 estrategias obligatorias + 2 propias.</td></tr>
+    <tr id="g-MIN_RONDAS"><td><code>MIN_RONDAS</code></td><td>201</td><td><a href="#s13">leerNumeroRondas</a></td><td>El enunciado exige <b>más de</b> 200 rondas → el menor entero válido es 201.</td></tr>
+  </table>
+  <div class="why"><b>¿Por qué constantes y no escribir 8 directamente?</b> Si mañana agregas una novena estrategia, cambias <b>un solo número</b> y todos los arreglos y bucles se ajustan solos. Con el 8 escrito en 15 lugares tendrías que encontrarlos todos (y es fácil olvidar uno).</div>
+  <div class="why"><b>¿Por qué no hay máximo?</b> El enunciado solo pide <b>más de 200</b> rondas; no pone un límite superior, así que el programa tampoco. Eso obliga a tres decisiones:
+    <ul>
+      <li><b>Historial con memoria dinámica.</b> <code>char historialA[numeroRondas]</code> no es C++ estándar, porque el tamaño se conoce recién cuando el usuario escribe. Por eso <code>ejecutarPartida</code> crea los historiales con <code>new char[numeroRondas]</code> (el tamaño exacto que se pidió) y los libera con <code>delete[]</code> al terminar la partida (<a href="#s8">sección 8</a>).</li>
+      <li><b>Puntajes <code>long long</code>.</b> Un <code>int</code> llega hasta 2 147 483 647. Con muchas rondas los puntajes pasarían ese valor y se desbordarían (<a href="#r1">Pruébalo 1</a>). <code>long long</code> llega hasta unos 9,2 × 10<sup>18</sup>.</li>
+      <li><b>Vengativa sin recorrer todo el historial.</b> Si en cada ronda se revisaran todas las rondas anteriores, con muchas rondas el torneo sería muy lento (<a href="#s7-venga">sección 7</a>).</li>
+    </ul>
+    El único tope práctico es que <code>numeroRondas</code> es un <code>int</code>: un número mayor que 2 147 483 647 no cabe y <code>cin</code> lo trata como entrada inválida. Además, mientras más rondas, más memoria y más tiempo tarda el torneo.</div>
+  <div class="try"><span class="tt">Pruébalo 1.</span> Si el usuario escribe 100 000 000 rondas, ¿cuántos puntos puede llegar a tener, como máximo, una estrategia? ¿Cabría en un <code>int</code>? <a href="#r1">→ respuesta</a></div>
+
+  <h3>Las constantes de la matriz de pagos</h3>
+<pre>const int PUNTOS_COOPERACION_MUTUA = 3;   <span class="cm">// C-C</span>
+const int PUNTOS_TRAICION_EXITOSA  = 5;   <span class="cm">// yo T, él C</span>
+const int PUNTOS_ENGANADO          = 0;   <span class="cm">// yo C, él T</span>
+const int PUNTOS_TRAICION_MUTUA    = 1;   <span class="cm">// T-T</span></pre>
+  <p>Están dentro de <code>matriz_pagos.cpp</code> (no en el <code>.h</code>) porque solo esa función las necesita. Tener nombres evita los “números mágicos”: <code>puntosA = PUNTOS_ENGANADO</code> se entiende; <code>puntosA = 0</code> no dice por qué.</p>
+</section>
+
+<!-- ============================ 3 ============================ -->
+<section class="pb" id="s3">
+  <h2>3. El struct Estrategia (la “ficha” de cada jugador)</h2>
+  <p>Un <code>struct</code> agrupa variables que pertenecen a lo mismo. En vez de tener 12 arreglos sueltos (<code>nombres[8]</code>, <code>puntajes[8]</code>, <code>vecesC[8]</code>…), cada estrategia tiene su propia ficha con todos sus datos juntos.</p>
+  <div class="struct">
+    <div class="hd">struct Estrategia</div>
+    <div class="grp">
+      <div><h4>Identidad (no cambia)</h4>
+        <div class="f"><a href="#g-id">int id</a></div>
+        <div class="f"><a href="#g-nombre">string nombre</a></div>
+        <div class="f"><a href="#s4">FuncionDecision decidir</a></div>
+      </div>
+      <div><h4>Se llena al jugar</h4>
+        <div class="f"><a href="#g-puntajeTotal">long long puntajeTotal</a></div>
+        <div class="f"><a href="#g-puntosContra">long long puntosContra[8]</a></div>
+        <div class="f"><a href="#g-vecesC">long long vecesC</a></div>
+        <div class="f"><a href="#g-vecesC">long long vecesT</a></div>
+      </div>
+      <div><h4>Se calcula al final</h4>
+        <div class="f"><a href="#g-victorias">int victorias</a></div>
+        <div class="f"><a href="#g-victorias">int derrotas</a></div>
+        <div class="f"><a href="#g-victorias">int empates</a></div>
+        <div class="f"><a href="#g-porcentajeC">double porcentajeC</a></div>
+        <div class="f"><a href="#g-porcentajeC">double porcentajeT</a></div>
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th style="width:20%">Campo</th><th>Para qué existe</th><th style="width:22%">Lo escribe</th><th style="width:20%">Lo lee</th></tr>
+    <tr><td><code>id</code></td><td>Saber qué posición ocupa en el arreglo.</td><td>inicializarEstrategias</td><td>—</td></tr>
+    <tr><td><code>nombre</code></td><td>Mostrarlo por pantalla.</td><td>inicializarEstrategias</td><td>funciones mostrar…</td></tr>
+    <tr><td><code>decidir</code></td><td>Guardar <b>qué función</b> usa esta estrategia para elegir C o T.</td><td>inicializarEstrategias</td><td>ejecutarPartida</td></tr>
+    <tr><td><code>puntosContra[j]</code></td><td>Puntos que sacó contra la estrategia <code>j</code>. Hace falta para el detalle y para saber si ganó o perdió cada partida.</td><td>ejecutarTorneo</td><td>calcularEstadisticas, mostrarDetalle…</td></tr>
+    <tr><td><code>puntajeTotal</code></td><td>Suma de todos sus <code>puntosContra</code>. Decide el ranking.</td><td>ejecutarTorneo</td><td>ordenarRanking, mostrar…</td></tr>
+    <tr><td><code>vecesC</code>, <code>vecesT</code></td><td>Cuántas veces cooperó / traicionó en todo el torneo.</td><td>registrarJugada</td><td>calcularEstadisticas</td></tr>
+    <tr><td><code>victorias</code>, <code>derrotas</code>, <code>empates</code></td><td>Resultado de sus 7 partidas.</td><td>calcularEstadisticas</td><td>mostrar…</td></tr>
+    <tr><td><code>porcentajeC</code>, <code>porcentajeT</code></td><td>Porcentajes (con decimales, por eso <code>double</code>).</td><td>calcularEstadisticas</td><td>mostrar…</td></tr>
+  </table>
+  <div class="why"><b>¿Por qué <code>puntosContra</code> es un arreglo dentro del struct?</b> Porque cada estrategia juega contra 8 posiciones posibles (7 rivales + ella misma, que queda en 0). La posición del arreglo es el <code>id</code> del rival: <code>estrategias[3].puntosContra[1]</code> = “lo que Tit for Tat (3) sacó contra Siempre Traicionar (1)”.</div>
+  <div class="try"><span class="tt">Pruébalo 2.</span> ¿Qué valor tiene siempre <code>estrategias[5].puntosContra[5]</code> al final del torneo, y por qué? <a href="#r2">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 4 ============================ -->
+<section class="pb" id="s4">
+  <h2>4. El puntero a función <code>FuncionDecision</code></h2>
+  <p>Esta es la idea más avanzada del programa, y también la que más simplifica todo lo demás.</p>
+<pre>typedef char (*FuncionDecision)(int numeroRonda,
+                                const char historialPropio[],
+                                const char historialOponente[]);</pre>
+  <p>Léelo así: <i>“<code>FuncionDecision</code> es el nombre de un tipo. Una variable de ese tipo guarda la <b>dirección de una función</b> que recibe (<code>int</code>, arreglo de <code>char</code>, arreglo de <code>char</code>) y devuelve un <code>char</code>”</i>.</p>
+  <div class="why"><b>Analogía: el control remoto.</b> El campo <code>decidir</code> de cada ficha es un control remoto con un solo botón. A <code>ejecutarPartida</code> no le importa qué televisor controla: solo aprieta el botón <code>estrategiaA.decidir(...)</code> y recibe una <span class="C">C</span> o una <span class="T">T</span>.</div>
+
+  <h3>Sin puntero a función (lo que se evitó)</h3>
+<pre>char jugadaA;
+if      (estrategiaA.id == 0) jugadaA = decidirSiempreCooperar(ronda, historialA, historialB);
+else if (estrategiaA.id == 1) jugadaA = decidirSiempreTraicionar(ronda, historialA, historialB);
+else if (estrategiaA.id == 2) jugadaA = decidirAleatoria(ronda, historialA, historialB);
+<span class="cm">// ... 8 casos, y otra vez los 8 casos para jugadaB ...</span></pre>
+  <h3>Con puntero a función (lo que hace el programa)</h3>
+<pre><span class="hl">char jugadaA = estrategiaA.decidir(ronda, historialA, historialB);</span>
+<span class="hl">char jugadaB = estrategiaB.decidir(ronda, historialB, historialA);</span></pre>
+
+  <h3>¿Cómo se conecta cada ficha con su función?</h3>
+  <p>En <code>inicializarEstrategias</code> hay dos <b>arreglos paralelos</b>: la posición <code>i</code> de uno corresponde a la posición <code>i</code> del otro.</p>
+  <div class="memlbl">string nombres[8]</div>
+  <div class="mem">
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">S. Cooperar</div><div class="i">0</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">S. Traicionar</div><div class="i">1</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">Aleatoria</div><div class="i">2</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">Tit for Tat</div><div class="i">3</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">Vengativa</div><div class="i">4</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">Ojo x 2 Ojos</div><div class="i">5</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">Pavlov</div><div class="i">6</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7.5pt">Sonda</div><div class="i">7</div></div>
+  </div>
+  <div class="memlbl">FuncionDecision funciones[8]</div>
+  <div class="mem">
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidirSiempre Cooperar</div><div class="i">0</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidirSiempre Traicionar</div><div class="i">1</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidir Aleatoria</div><div class="i">2</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidir TitForTat</div><div class="i">3</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidir Vengativa</div><div class="i">4</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidir OjoPorDosOjos</div><div class="i">5</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidir Pavlov</div><div class="i">6</div></div>
+    <div class="cell wide"><div class="v" style="font-size:7pt">&amp;decidir Sonda</div><div class="i">7</div></div>
+  </div>
+<pre>for (int i = 0; i &lt; NUM_ESTRATEGIAS; i++) {
+    estrategias[i].id      = i;
+    estrategias[i].nombre  = nombres[i];
+    estrategias[i].decidir = funciones[i];     <span class="cm">// guarda la dirección de la función</span>
+    ...                                       <span class="cm">// contadores en 0</span>
+}</pre>
+  <div class="why"><b>¿Por qué todas las funciones reciben los 3 parámetros aunque algunas no los usen?</b> Para caber en el mismo tipo de puntero, todas deben tener <b>exactamente la misma firma</b>. <code>decidirSiempreCooperar</code> ignora el historial, pero igual debe aceptarlo.</div>
+  <div class="try"><span class="tt">Pruébalo 3.</span> Quieres agregar una novena estrategia, “Rencorosa suave”. ¿Qué tres cosas tienes que cambiar en el código? <a href="#r3">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 5 ============================ -->
+<section class="pb" id="s5">
+  <h2>5. Todos los arreglos del programa, dibujados</h2>
+  <table>
+    <tr><th>Arreglo</th><th>Tipo y tamaño</th><th>Dónde vive</th><th>Qué guarda</th></tr>
+    <tr><td><a href="#g-estrategias">estrategias</a></td><td><code>Estrategia[8]</code></td><td><code>main</code></td><td>Las 8 fichas. Todo el programa trabaja sobre él.</td></tr>
+    <tr><td><a href="#g-ranking">ranking</a></td><td><code>int[8]</code></td><td><code>main</code></td><td>Índices ordenados por puntaje.</td></tr>
+    <tr><td><a href="#g-puntosContra">puntosContra</a></td><td><code>long long[8]</code> dentro de cada ficha</td><td>struct</td><td>Puntos contra cada rival. Juntando los 8 forma una tabla 8 × 8.</td></tr>
+    <tr><td><a href="#g-historialA">historialA / historialB</a></td><td><code>new char[numeroRondas]</code></td><td><code>ejecutarPartida</code></td><td>Jugadas C/T de la partida actual. Tamaño exacto, se libera con <code>delete[]</code>.</td></tr>
+    <tr><td><code>nombres</code>, <code>funciones</code></td><td><code>string[8]</code>, <code>FuncionDecision[8]</code></td><td><code>inicializarEstrategias</code></td><td>Datos para llenar las fichas (<a href="#s4">ver sección 4</a>).</td></tr>
+  </table>
+
+  <h3 id="g-estrategias">estrategias[8]: el arreglo de fichas</h3>
+  <p>Cada celda es un struct completo. Al final del torneo (250 rondas) se ve así:</p>
+  <table style="font-size:8.6pt">
+    <tr><th>índice</th><th>nombre</th><th>puntajeTotal</th><th>vecesC</th><th>vecesT</th><th>G/P/E</th></tr>
+    <tr><td>0</td><td>Siempre Cooperar</td><td>3408</td><td>1750</td><td>0</td><td>0/3/4</td></tr>
+    <tr><td>1</td><td>Siempre Traicionar</td><td>3750</td><td>0</td><td>1750</td><td>7/0/0</td></tr>
+    <tr><td>2</td><td>Aleatoria</td><td>3734</td><td>876</td><td>874</td><td>3/2/2</td></tr>
+    <tr><td>3</td><td>Tit for Tat</td><td>4553</td><td>1372</td><td>378</td><td>0/1/6</td></tr>
+    <tr><td>4</td><td>Vengativa</td><td>4261</td><td>1004</td><td>746</td><td>2/1/4</td></tr>
+    <tr><td>5</td><td>Ojo por Dos Ojos</td><td>3950</td><td>1189</td><td>561</td><td>0/3/4</td></tr>
+    <tr><td>6</td><td>Pavlov</td><td>4184</td><td>1345</td><td>405</td><td>1/2/4</td></tr>
+    <tr><td>7</td><td>Sonda</td><td>3828</td><td>468</td><td>1282</td><td>2/3/2</td></tr>
+  </table>
+  <div class="why"><b>¿Por qué 1750?</b> Cada estrategia juega 7 partidas de 250 rondas: 7 × 250 = 1750 jugadas. Por eso <code>vecesC + vecesT</code> siempre suma 1750.</div>
+
+  <h3 id="g-puntosContra">puntosContra: una tabla 8 × 8 repartida en 8 fichas</h3>
+  <p>Si pones los 8 arreglos <code>puntosContra</code> uno debajo del otro, obtienes una tabla. La fila es “yo” y la columna es “mi rival”:</p>
+  <table class="grid8">
+    <tr><th></th><th>[0]</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th><th>[7]</th></tr>
+    <tr><th>0 S.Coop</th><td class="self">0</td><td>0</td><td>402</td><td>750</td><td>750</td><td>750</td><td>750</td><td>6</td></tr>
+    <tr><th>1 S.Trai</th><td>1250</td><td class="self">0</td><td>726</td><td>254</td><td>254</td><td>258</td><td>750</td><td>258</td></tr>
+    <tr><th>3 TFT</th><td>750</td><td style="background:var(--tbg)"><b>249</b></td><td>555</td><td class="self">0</td><td>750</td><td>750</td><td>750</td><td>749</td></tr>
+    <tr><th>…</th><td colspan="8" style="color:var(--muted)">(filas 2, 4, 5, 6, 7)</td></tr>
+  </table>
+  <p>La celda resaltada es <code>estrategias[3].puntosContra[1] = 249</code>. Su “espejo” es <code>estrategias[1].puntosContra[3] = 254</code>. Comparando las dos se sabe quién ganó esa partida (<a href="#s11">sección 11</a>).</p>
+
+  <h3 id="g-ranking">ranking[8]: índices, no fichas</h3>
+  <div class="memlbl">ranking[] después de ordenar</div>
+  <div class="mem">
+    <div class="cell"><div class="v">3</div><div class="i">0</div></div><div class="cell"><div class="v">4</div><div class="i">1</div></div><div class="cell"><div class="v">6</div><div class="i">2</div></div><div class="cell"><div class="v">5</div><div class="i">3</div></div><div class="cell"><div class="v">7</div><div class="i">4</div></div><div class="cell"><div class="v">1</div><div class="i">5</div></div><div class="cell"><div class="v">2</div><div class="i">6</div></div><div class="cell"><div class="v">0</div><div class="i">7</div></div>
+  </div>
+  <p><code>ranking[0] = 3</code> significa “el primer puesto lo tiene la estrategia 3 (Tit for Tat)”. Para leer su nombre: <code>estrategias[ranking[0]].nombre</code>. <a href="#s12">¿Por qué índices y no fichas? → sección 12</a></p>
+</section>
+
+<!-- ============================ 6 ============================ -->
+<section class="pb" id="s6">
+  <h2>6. La regla de los índices: N − 1 y N − 2</h2>
+  <p>Las rondas se cuentan desde <b>1</b> (como las cuenta una persona), pero los arreglos en C++ empiezan en <b>0</b>. De ahí salen dos reglas que aparecen en todo el código:</p>
+  <table>
+    <tr><th>Quiero…</th><th>Escribo…</th><th>Ejemplo en la ronda 5</th></tr>
+    <tr><td>Guardar la jugada de la ronda actual</td><td><code>historial[ronda - 1]</code></td><td>se guarda en la posición 4</td></tr>
+    <tr><td>Leer la jugada de la ronda anterior</td><td><code>historial[numeroRonda - 2]</code></td><td>se lee la posición 3 (= ronda 4)</td></tr>
+    <tr><td>Leer la de hace dos rondas</td><td><code>historial[numeroRonda - 3]</code></td><td>se lee la posición 2 (= ronda 3)</td></tr>
+  </table>
+  <p id="g-historialA">Así se ve <code>historialOponente</code> cuando se está decidiendo la <b>ronda 5</b> (4 rondas ya jugadas):</p>
+  <div class="mem">
+    <div class="cell C"><div class="v">C</div><div class="i">[0] r1</div></div>
+    <div class="cell T"><div class="v">T</div><div class="i">[1] r2</div></div>
+    <div class="cell C"><div class="v">C</div><div class="i">[2] r3</div></div>
+    <div class="cell T cur"><div class="v">T</div><div class="i">[3] r4</div></div>
+    <div class="cell e"><div class="v">?</div><div class="i">[4] r5</div></div>
+    <div class="cell e"><div class="v">?</div><div class="i">[5]</div></div>
+    <div class="cell e"><div class="v">…</div><div class="i">…</div></div>
+    <div class="cell e wide"><div class="v">?</div><div class="i">[numeroRondas − 1]</div></div>
+  </div>
+  <p style="font-size:9pt">La celda con borde amarillo es <code>historialOponente[5 - 2]</code>: la última jugada del rival. Las celdas con <b>?</b> tienen basura (el arreglo no se inicializa), pero <b>nunca se leen</b>: cada estrategia solo mira posiciones menores que <code>numeroRonda - 1</code>.</p>
+  <div class="why"><b>¿Por qué Tit for Tat, Vengativa y Pavlov tienen <code>if (numeroRonda == 1)</code>?</b> En la ronda 1, <code>numeroRonda - 2 = -1</code>. Leer <code>historial[-1]</code> sería leer memoria fuera del arreglo. Esa condición es una <b>protección</b>, no solo una regla del juego. Igual con Ojo por Dos Ojos, que necesita <code>numeroRonda &gt;= 3</code> para leer <code>numeroRonda - 3</code>.</div>
+  <div class="try"><span class="tt">Pruébalo 4.</span> En la ronda 10, ¿qué posiciones de los historiales lee <code>decidirVengativa</code>? <a href="#r4">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 7 ============================ -->
+<section class="pb" id="s7">
+  <h2>7. Las 8 estrategias por dentro</h2>
+  <p>Todas tienen la misma firma: reciben <a href="#g-numeroRonda">numeroRonda</a>, <a href="#g-historialPropio">historialPropio</a> e <a href="#g-historialPropio">historialOponente</a>, y devuelven <code>'C'</code> o <code>'T'</code>.</p>
+
+  <table>
+    <tr><th style="width:24%">Estrategia</th><th>Código clave</th><th style="width:28%">¿Qué mira?</th></tr>
+    <tr><td>Siempre Cooperar</td><td><code>return 'C';</code></td><td>Nada.</td></tr>
+    <tr><td>Siempre Traicionar</td><td><code>return 'T';</code></td><td>Nada.</td></tr>
+    <tr id="s7-ale"><td>Aleatoria</td><td><code>if (rand() % 2 == 0) return 'C'; return 'T';</code></td><td>Nada: el azar.</td></tr>
+    <tr><td>Tit for Tat</td><td><code>return historialOponente[numeroRonda - 2];</code></td><td>Última jugada del rival.</td></tr>
+    <tr><td>Vengativa</td><td><code>if (historialOponente[numeroRonda - 2] == 'T' || historialPropio[numeroRonda - 2] == 'T') return 'T';</code></td><td>La última del rival y la última propia.</td></tr>
+    <tr><td>Ojo por Dos Ojos</td><td><code>if (anterior == 'T' &amp;&amp; antepasada == 'T') return 'T';</code></td><td>Las dos últimas del rival.</td></tr>
+    <tr><td>Pavlov</td><td><code>if (miJugadaAnterior == jugadaAnteriorRival) return 'C';</code></td><td>La última propia y la última del rival.</td></tr>
+    <tr><td>Sonda</td><td><code>oponenteSeDefendio = (historialOponente[1]=='T' || historialOponente[2]=='T');</code></td><td>Rondas 2 y 3 del rival + la última.</td></tr>
+  </table>
+
+  <div class="why"><b>¿Por qué <code>srand(time(0))</code> está en <code>main</code> y no en <code>decidirAleatoria</code>?</b> <code>srand</code> fija el punto de partida del azar. Si se llamara en cada ronda, todas las rondas del mismo segundo tendrían la misma semilla y darían <b>la misma jugada</b>. Se llama una sola vez al inicio y después <code>rand()</code> va dando números distintos.</div>
+
+  <h3 id="s7-venga">Vengativa: “recordar para siempre” mirando solo la ronda anterior</h3>
+<pre>if (numeroRonda == 1) return 'C';
+if (historialOponente[numeroRonda - 2] == 'T' || historialPropio[numeroRonda - 2] == 'T')
+    return 'T';
+return 'C';</pre>
+  <p>No tiene una variable <code>bool yaMeTraicionaron</code>. Hay solo dos formas de que Vengativa traicione en esta ronda:</p>
+  <ul>
+    <li><b>El rival traicionó en la ronda anterior</b> → la venganza empieza ahora.</li>
+    <li><b>Yo traicioné en la ronda anterior</b> → eso solo pasa si la venganza ya había empezado, así que sigo.</li>
+  </ul>
+  <p>La primera <span class="T">T</span> del rival “enciende” la venganza, y desde ahí su propia <span class="T">T</span> la mantiene encendida para siempre. La memoria <b>es</b> su propio historial.</p>
+  <div class="why"><b>¿Por qué no recorrer todo el historial del rival buscando una <span class="T">T</span>?</b> Daría el mismo resultado, pero en la ronda <i>n</i> habría que revisar <i>n</i> − 1 posiciones. En una partida eso suma 1 + 2 + … + <i>n</i> ≈ <i>n</i>² / 2 lecturas: con 100 000 rondas serían unos 5 000 millones por partida. Como ya no hay límite de rondas, se mira solo la ronda anterior: <b>2 lecturas por ronda</b>, sin importar cuántas rondas se jueguen.</div>
+
+  <h3 id="g-miJugadaAnterior">Pavlov: 4 casos en 1 regla</h3>
+  <table style="width:75%">
+    <tr><th>Yo (anterior)</th><th>Rival (anterior)</th><th>¿Iguales?</th><th>Jugada</th></tr>
+    <tr><td class="C">C</td><td class="C">C</td><td>sí</td><td class="C">C</td></tr>
+    <tr><td class="T">T</td><td class="T">T</td><td>sí</td><td class="C">C</td></tr>
+    <tr><td class="C">C</td><td class="T">T</td><td>no</td><td class="T">T</td></tr>
+    <tr><td class="T">T</td><td class="C">C</td><td>no</td><td class="T">T</td></tr>
+  </table>
+  <p>Variables locales: <code>miJugadaAnterior = historialPropio[numeroRonda - 2]</code> y <code>jugadaAnteriorRival = historialOponente[numeroRonda - 2]</code>. Pavlov y Vengativa son las únicas estrategias que usan <code>historialPropio</code>: las demás solo miran al rival.</p>
+
+  <h3 id="g-oponenteSeDefendio">Sonda: la variable <code>oponenteSeDefendio</code></h3>
+  <div class="flowline"><span class="b">ronda 1: T</span>→<span class="b">ronda 2: C</span>→<span class="b">ronda 3: C</span>→<span class="b">¿rival jugó T en [1] o [2]?</span>→ sí: <span class="b">copiar como TFT</span> · no: <span class="b">T para siempre</span></div>
+  <div class="why"><b>¿Por qué no usar una variable <code>static bool</code> para recordar el modo?</b> Una variable <code>static</code> dentro de una función <b>conserva su valor entre llamadas… y entre partidas</b>. La Sonda recordaría lo que decidió contra el rival anterior y lo aplicaría al siguiente. Calcularla desde el historial garantiza que cada partida empiece limpia, porque el historial se crea de nuevo en cada partida.</div>
+  <div class="try"><span class="tt">Pruébalo 5.</span> Sonda contra Siempre Cooperar: ¿qué juega la Sonda en la ronda 4 y por qué? <a href="#r5">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 8 ============================ -->
+<section class="pb" id="s8">
+  <h2>8. Una partida, ronda por ronda (<code>ejecutarPartida</code>)</h2>
+<pre>void ejecutarPartida(Estrategia &amp;estrategiaA, Estrategia &amp;estrategiaB, int numeroRondas,
+                     long long &amp;puntosPartidaA, long long &amp;puntosPartidaB)
+{
+    char *historialA = new char[numeroRondas];                         <a class="n" href="#p1">1</a>
+    char *historialB = new char[numeroRondas];
+    puntosPartidaA = 0;  puntosPartidaB = 0;
+
+    for (int ronda = 1; ronda &lt;= numeroRondas; ronda++)
+    {
+        char jugadaA = estrategiaA.decidir(ronda, historialA, historialB); <a class="n" href="#p2">2</a>
+        char jugadaB = estrategiaB.decidir(ronda, historialB, historialA); <a class="n" href="#p3">3</a>
+
+        historialA[ronda - 1] = jugadaA;                                  <a class="n" href="#p2">2</a>
+        historialB[ronda - 1] = jugadaB;
+
+        registrarJugada(estrategiaA, jugadaA);                            <a class="n" href="#p4">4</a>
+        registrarJugada(estrategiaB, jugadaB);
+
+        int puntosRondaA;  int puntosRondaB;
+        calcularPuntosRonda(jugadaA, jugadaB, puntosRondaA, puntosRondaB);  <a class="n" href="#s9">9</a>
+        puntosPartidaA += puntosRondaA;
+        puntosPartidaB += puntosRondaB;
+    }
+
+    delete[] historialA;                                                <a class="n" href="#p1">1</a>
+    delete[] historialB;
+}</pre>
+  <ol>
+    <li id="p1"><b>Historiales nuevos en cada partida:</b> se crean dentro de la función, así que ninguna estrategia “recuerda” lo que pasó contra otro rival. Como no hay máximo de rondas, se piden con <code>new char[numeroRondas]</code>: justo el tamaño necesario, ni una celda de más. Todo lo que se pide con <code>new</code> hay que devolverlo con <code>delete[]</code>; si no, cada una de las 28 partidas dejaría memoria ocupada sin usar (una <b>fuga de memoria</b>).</li>
+    <li id="p2"><b>Decidir primero, guardar después:</b> las dos estrategias deciden <b>antes</b> de guardar. Si se guardara <code>jugadaA</code> antes de que B decida, B podría ver lo que A acaba de jugar, y eso sería hacer trampa: en el dilema las decisiones son <b>simultáneas</b>.</li>
+    <li id="p3"><b>Los historiales se pasan al revés para B:</b> <code>(ronda, historialB, historialA)</code>. Para B, “propio” es el historial B y “oponente” es el A. Gracias a eso la misma función sirve para jugar de un lado o del otro.</li>
+    <li id="p4"><b><code>registrarJugada</code></b> suma 1 a <code>vecesC</code> o a <code>vecesT</code>. Recibe la estrategia <b>por referencia</b> (<code>&amp;</code>) para modificar la ficha original y no una copia.</li>
+  </ol>
+
+  <h3>Traza: Tit for Tat (A) contra Sonda (B)</h3>
+  <table class="trace">
+    <tr><th>Ronda</th><th>¿Qué pasa en la cabeza de cada una?</th><th>A</th><th>B</th><th>+A</th><th>+B</th><th>Total A</th><th>Total B</th></tr>
+    <tr><td>1</td><td class="l">TFT: ronda 1 → C. Sonda: ronda 1 → T.</td><td class="C">C</td><td class="T">T</td><td>0</td><td>5</td><td>0</td><td>5</td></tr>
+    <tr><td>2</td><td class="l">TFT copia historialB[0] = T. Sonda: ronda 2 → C.</td><td class="T">T</td><td class="C">C</td><td>5</td><td>0</td><td>5</td><td>5</td></tr>
+    <tr><td>3</td><td class="l">TFT copia historialB[1] = C. Sonda: ronda 3 → C.</td><td class="C">C</td><td class="C">C</td><td>3</td><td>3</td><td>8</td><td>8</td></tr>
+    <tr><td>4</td><td class="l">Sonda: historialA[1] = T → <b>se defendió</b> → copia historialA[2] = C.</td><td class="C">C</td><td class="C">C</td><td>3</td><td>3</td><td>11</td><td>11</td></tr>
+    <tr><td>5…250</td><td class="l">Ambas copian C: cooperación para siempre.</td><td class="C">C</td><td class="C">C</td><td>3</td><td>3</td><td>…</td><td>…</td></tr>
+    <tr><th colspan="6" style="text-align:right">Final (250 rondas): 5 + 0 + 248 × 3 =</th><th>749</th><th>749</th></tr>
+  </table>
+  <p>Así quedan los historiales después de la ronda 4:</p>
+  <div class="memlbl">historialA (Tit for Tat)</div>
+  <div class="mem"><div class="cell C"><div class="v">C</div><div class="i">0</div></div><div class="cell T"><div class="v">T</div><div class="i">1</div></div><div class="cell C"><div class="v">C</div><div class="i">2</div></div><div class="cell C"><div class="v">C</div><div class="i">3</div></div><div class="cell e"><div class="v">?</div><div class="i">4</div></div></div>
+  <div class="memlbl">historialB (Sonda)</div>
+  <div class="mem"><div class="cell T"><div class="v">T</div><div class="i">0</div></div><div class="cell C"><div class="v">C</div><div class="i">1</div></div><div class="cell C"><div class="v">C</div><div class="i">2</div></div><div class="cell C"><div class="v">C</div><div class="i">3</div></div><div class="cell e"><div class="v">?</div><div class="i">4</div></div></div>
+
+  <h3>Traza: Pavlov contra Siempre Traicionar (su punto débil)</h3>
+  <table class="trace">
+    <tr><th>Ronda</th><th>Pavlov mira (yo, rival)</th><th>Pavlov</th><th>S. Trai.</th><th>+P</th><th>+ST</th></tr>
+    <tr><td>1</td><td>ronda 1</td><td class="C">C</td><td class="T">T</td><td>0</td><td>5</td></tr>
+    <tr><td>2</td><td>(C, T) distintas</td><td class="T">T</td><td class="T">T</td><td>1</td><td>1</td></tr>
+    <tr><td>3</td><td>(T, T) iguales</td><td class="C">C</td><td class="T">T</td><td>0</td><td>5</td></tr>
+    <tr><td>4</td><td>(C, T) distintas</td><td class="T">T</td><td class="T">T</td><td>1</td><td>1</td></tr>
+    <tr><td>…</td><td colspan="5">se repite C, T, C, T… → 125 × 0 + 125 × 1 = <b>125</b> contra <b>750</b></td></tr>
+  </table>
+  <div class="try"><span class="tt">Pruébalo 6.</span> ¿Qué pasaría si en <code>ejecutarPartida</code> se escribiera <code>historialA[ronda - 1] = jugadaA;</code> justo después de calcular <code>jugadaA</code> (antes de <code>jugadaB</code>), en la partida Tit for Tat (A) contra Tit for Tat (B)? <a href="#r6">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 9 ============================ -->
+<section class="pb" id="s9">
+  <h2>9. La matriz de pagos y el paso por referencia</h2>
+<pre>void calcularPuntosRonda(char jugadaA, char jugadaB, int &amp;puntosA, int &amp;puntosB)
+{
+    if      (jugadaA == 'C' &amp;&amp; jugadaB == 'C') { puntosA = 3; puntosB = 3; }
+    else if (jugadaA == 'C' &amp;&amp; jugadaB == 'T') { puntosA = 0; puntosB = 5; }
+    else if (jugadaA == 'T' &amp;&amp; jugadaB == 'C') { puntosA = 5; puntosB = 0; }
+    else                                     { puntosA = 1; puntosB = 1; }
+}           <span class="cm">// (en el código real se usan las constantes PUNTOS_...)</span></pre>
+  <div class="why"><b>¿Por qué <code>int &amp;puntosA</code> con <code>&amp;</code>?</b> Una función solo puede devolver <b>un</b> valor con <code>return</code>, pero aquí necesitamos devolver <b>dos</b> (los puntos de A y los de B). Con <code>&amp;</code>, <code>puntosA</code> no es una copia: es <b>otro nombre</b> para la variable <code>puntosRondaA</code> de <code>ejecutarPartida</code>. Lo que se asigna dentro aparece afuera.</div>
+  <table>
+    <tr><th>Parámetro</th><th>Cómo se pasa</th><th>¿Por qué?</th></tr>
+    <tr><td><code>char jugadaA</code></td><td>por valor (copia)</td><td>Solo se lee; copiar un <code>char</code> es gratis.</td></tr>
+    <tr><td><code>int &amp;puntosA</code></td><td>por referencia</td><td>Es un resultado: la función lo escribe.</td></tr>
+    <tr><td><code>Estrategia &amp;estrategiaA</code></td><td>por referencia</td><td><code>ejecutarPartida</code> modifica <code>vecesC</code>/<code>vecesT</code> de la ficha original.</td></tr>
+    <tr><td><code>const Estrategia estrategias[]</code></td><td>arreglo, de solo lectura</td><td>Las funciones <code>mostrar…</code> y <code>ordenarRanking</code> no deben modificar nada; <code>const</code> hace que el compilador lo impida.</td></tr>
+    <tr><td><code>Estrategia estrategias[]</code></td><td>arreglo (siempre se comparte)</td><td>En C++ un arreglo nunca se copia al pasarlo: la función trabaja sobre el original. Por eso <code>ejecutarTorneo</code> puede llenar los puntajes.</td></tr>
+  </table>
+  <div class="try"><span class="tt">Pruébalo 7.</span> Si quitamos el <code>&amp;</code> de <code>int &amp;puntosA</code>, el programa compila. ¿Qué puntaje tendría cada estrategia al final? <a href="#r7">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 10 ============================ -->
+<section class="pb" id="s10">
+  <h2>10. El torneo: por qué <code>j = i + 1</code></h2>
+<pre>for (int i = 0; i &lt; NUM_ESTRATEGIAS; i++)
+    for (int j = i + 1; j &lt; NUM_ESTRATEGIAS; j++)
+    {
+        long long puntosI;  long long puntosJ;
+        ejecutarPartida(estrategias[i], estrategias[j], numeroRondas, puntosI, puntosJ);
+
+        estrategias[i].puntosContra[j] = puntosI;     <span class="cm">// desde el punto de vista de i</span>
+        estrategias[j].puntosContra[i] = puntosJ;     <span class="cm">// desde el punto de vista de j</span>
+        estrategias[i].puntajeTotal += puntosI;
+        estrategias[j].puntajeTotal += puntosJ;
+    }</pre>
+  <p>Cada número de la tabla es el <b>orden</b> en que se juega esa partida. Solo se juega el triángulo superior:</p>
+  <table class="grid8">
+    <tr><th>i \ j</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>
+    <tr><th>0</th><td class="self"></td><td class="play">1</td><td class="play">2</td><td class="play">3</td><td class="play">4</td><td class="play">5</td><td class="play">6</td><td class="play">7</td></tr>
+    <tr><th>1</th><td class="mirror">=1</td><td class="self"></td><td class="play">8</td><td class="play">9</td><td class="play">10</td><td class="play">11</td><td class="play">12</td><td class="play">13</td></tr>
+    <tr><th>2</th><td class="mirror">=2</td><td class="mirror">=8</td><td class="self"></td><td class="play">14</td><td class="play">15</td><td class="play">16</td><td class="play">17</td><td class="play">18</td></tr>
+    <tr><th>3</th><td class="mirror">=3</td><td class="mirror">=9</td><td class="mirror">=14</td><td class="self"></td><td class="play">19</td><td class="play">20</td><td class="play">21</td><td class="play">22</td></tr>
+    <tr><th>4</th><td class="mirror">=4</td><td class="mirror">=10</td><td class="mirror">=15</td><td class="mirror">=19</td><td class="self"></td><td class="play">23</td><td class="play">24</td><td class="play">25</td></tr>
+    <tr><th>5</th><td class="mirror">=5</td><td class="mirror">=11</td><td class="mirror">=16</td><td class="mirror">=20</td><td class="mirror">=23</td><td class="self"></td><td class="play">26</td><td class="play">27</td></tr>
+    <tr><th>6</th><td class="mirror">=6</td><td class="mirror">=12</td><td class="mirror">=17</td><td class="mirror">=21</td><td class="mirror">=24</td><td class="mirror">=26</td><td class="self"></td><td class="play">28</td></tr>
+    <tr><th>7</th><td class="mirror">=7</td><td class="mirror">=13</td><td class="mirror">=18</td><td class="mirror">=22</td><td class="mirror">=25</td><td class="mirror">=27</td><td class="mirror">=28</td><td class="self"></td></tr>
+  </table>
+  <div class="why"><b>¿Por qué <code>j</code> empieza en <code>i + 1</code> y no en 0?</b>
+    <ul>
+      <li>Si empezara en <code>0</code>, se jugaría 0 contra 1 <b>y también</b> 1 contra 0: cada partida dos veces (56 en vez de 28) y todos los puntajes se duplicarían.</li>
+      <li>Si empezara en <code>i</code>, cada estrategia jugaría contra sí misma (la diagonal gris).</li>
+      <li>Con <code>i + 1</code> se juega exactamente cada par una vez: 7 + 6 + 5 + 4 + 3 + 2 + 1 = <b>28 partidas</b> = 8 × 7 / 2.</li>
+    </ul>
+  </div>
+  <div class="why"><b>¿Por qué se guardan dos celdas por partida?</b> La partida 9 (1 contra 3) llena <code>estrategias[1].puntosContra[3]</code> y también <code>estrategias[3].puntosContra[1]</code>. Así el triángulo inferior (las celdas “=9”) también queda lleno sin jugar de nuevo, y cada estrategia tiene sus 7 resultados.</div>
+  <div class="try"><span class="tt">Pruébalo 8.</span> ¿Cuántas partidas se jugarían con 10 estrategias? ¿Y cuántas partidas juega cada una? <a href="#r8">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 11 ============================ -->
+<section class="pb" id="s11">
+  <h2>11. Estadísticas: victorias y porcentajes</h2>
+<pre>for (int j = 0; j &lt; NUM_ESTRATEGIAS; j++)
+{
+    if (j == i) continue;                                <span class="cm">// no hubo partida contra sí misma</span>
+    long long misPuntos   = estrategias[i].puntosContra[j];
+    long long puntosRival = estrategias[j].puntosContra[i];    <span class="cm">// la celda "espejo"</span>
+    if      (misPuntos &gt; puntosRival) estrategias[i].victorias++;
+    else if (misPuntos &lt; puntosRival) estrategias[i].derrotas++;
+    else                              estrategias[i].empates++;
+}</pre>
+  <p id="g-victorias"><b>Ejemplo con i = 3 (Tit for Tat) y j = 1 (Siempre Traicionar):</b> <code>misPuntos = 249</code>, <code>puntosRival = 254</code> → 249 &lt; 254 → <code>derrotas++</code>.</p>
+  <div class="why"><b>¿Por qué <code>continue</code> cuando <code>j == i</code>?</b> <code>puntosContra[i]</code> de sí misma vale 0, y 0 contra 0 contaría como un <b>empate falso</b>. Con <code>continue</code> se salta esa vuelta del bucle y cada estrategia suma exactamente 7 resultados.</div>
+
+  <h3 id="g-porcentajeC">Porcentajes</h3>
+<pre>long long totalJugadas = estrategias[i].vecesC + estrategias[i].vecesT;
+if (totalJugadas &gt; 0)
+    estrategias[i].porcentajeC = 100.0 * estrategias[i].vecesC / totalJugadas;</pre>
+  <div class="why"><b>¿Por qué <code>100.0</code> y no <code>100</code>?</b> Cuando todos los operandos son enteros (<code>int</code> o <code>long long</code>), C++ hace <b>división entera</b> y descarta los decimales. Con <code>100 * 1372 / 1750</code> saldría <code>78</code> en vez de <code>78.40</code>; y si alguien escribiera <code>vecesC / totalJugadas * 100</code>, saldría <code>0</code>, porque <code>1372 / 1750 = 0</code> en división entera. Al empezar con <code>100.0</code> (un <code>double</code>), toda la operación se hace con decimales: <code>100.0 * 1372 / 1750 = 78.40</code>.</div>
+  <div class="why"><b>¿Por qué el <code>if (totalJugadas &gt; 0)</code>?</b> Para no dividir entre cero. En este programa nunca pasa (siempre hay jugadas), pero es una protección barata.</div>
+  <div class="try"><span class="tt">Pruébalo 9.</span> Siempre Traicionar tiene 7 victorias y queda 6.ª. Tit for Tat tiene 0 victorias y queda 1.ª. ¿Cómo es posible? <a href="#r9">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 12 ============================ -->
+<section class="pb" id="s12">
+  <h2>12. El ranking: burbuja sobre índices</h2>
+<pre>for (int i = 0; i &lt; NUM_ESTRATEGIAS; i++) ranking[i] = i;        <span class="cm">// 0,1,2,...,7</span>
+
+for (int pasada = 0; pasada &lt; NUM_ESTRATEGIAS - 1; pasada++)
+    for (int k = 0; k &lt; NUM_ESTRATEGIAS - 1 - pasada; k++)
+    {
+        long long puntajeActual    = estrategias[ranking[k]].puntajeTotal;
+        long long puntajeSiguiente = estrategias[ranking[k + 1]].puntajeTotal;
+        if (puntajeActual &lt; puntajeSiguiente)          <span class="cm">// el de abajo tiene más: intercambiar</span>
+        {
+            int temporal = ranking[k];  ranking[k] = ranking[k + 1];  ranking[k + 1] = temporal;
+        }
+    }</pre>
+  <div class="why"><b>¿Por qué ordenar índices y no las fichas?</b> Si se intercambiaran las fichas, <code>estrategias[3]</code> dejaría de ser Tit for Tat. Pero <code>puntosContra[3]</code> de todas las demás sigue significando “contra la estrategia que estaba en la posición 3”. Toda la tabla de resultados quedaría desordenada. Ordenando un arreglo aparte de índices, <code>estrategias[]</code> no se mueve. Además, intercambiar dos <code>int</code> es más barato que intercambiar dos structs con un <code>string</code> y un arreglo dentro.</div>
+  <div class="why"><b>¿Por qué <code>k &lt; NUM_ESTRATEGIAS - 1 - pasada</code>?</b> Después de cada pasada, el menor puntaje “se hunde” hasta el final y queda en su lugar definitivo. No hace falta volver a compararlo. Y el <code>- 1</code> evita que <code>k + 1</code> se salga del arreglo.</div>
+
+  <h3>Traza con los puntajes reales</h3>
+  <p>Puntajes por índice: 0→3408, 1→3750, 2→3734, 3→4553, 4→4261, 5→3950, 6→4184, 7→3828.</p>
+  <table class="trace">
+    <tr><th>Momento</th><th colspan="8">ranking[0 … 7]</th><th>intercambios</th></tr>
+    <tr><td class="l">inicio</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>—</td></tr>
+    <tr><td class="l">tras pasada 0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td style="background:var(--soft)"><b>0</b></td><td>7</td></tr>
+    <tr><td class="l">tras pasada 1</td><td>1</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td style="background:var(--soft)"><b>2</b></td><td style="background:var(--soft)"><b>0</b></td><td>5</td></tr>
+    <tr><td class="l">tras pasada 2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td style="background:var(--soft)"><b>1</b></td><td style="background:var(--soft)"><b>2</b></td><td style="background:var(--soft)"><b>0</b></td><td>5</td></tr>
+    <tr><td class="l">tras pasada 3</td><td>3</td><td>4</td><td>6</td><td>5</td><td>7</td><td>1</td><td>2</td><td>0</td><td>1</td></tr>
+    <tr><td class="l">pasadas 4–6</td><td>3</td><td>4</td><td>6</td><td>5</td><td>7</td><td>1</td><td>2</td><td>0</td><td>0</td></tr>
+  </table>
+  <p>En la pasada 0, Siempre Cooperar (índice 0, el menor puntaje) se intercambia 7 veces hasta llegar al final. Resultado: TFT, Vengativa, Pavlov, Ojo por Dos Ojos, Sonda, S. Traicionar, Aleatoria, S. Cooperar.</p>
+  <div class="try"><span class="tt">Pruébalo 10.</span> ¿Qué habría que cambiar para ordenar de <b>menor</b> a mayor? <a href="#r10">→ respuesta</a></div>
+</section>
+
+<!-- ============================ 13 ============================ -->
+<section class="pb" id="s13">
+  <h2>13. Lectura validada y salida por pantalla</h2>
+  <h3 id="g-numeroRondas">leerNumeroRondas()</h3>
+<pre>int numeroRondas = 0;
+bool entradaValida = false;
+while (!entradaValida)
+{
+    cout &lt;&lt; "Ingrese el numero de rondas por partida (mayor a 200): ";
+    cin &gt;&gt; numeroRondas;
+    if (cin.fail()) {                          <span class="cm">// escribió letras</span>
+        cin.clear();                           <span class="cm">// 1. quita el estado de error</span>
+        cin.ignore(numeric_limits&lt;streamsize&gt;::max(), '\n');  <span class="cm">// 2. bota la línea</span>
+        cout &lt;&lt; "Entrada invalida...";
+    } else {
+        cin.ignore(numeric_limits&lt;streamsize&gt;::max(), '\n');
+        if (numeroRondas &lt; MIN_RONDAS) cout &lt;&lt; "El numero de rondas debe ser mayor a 200.\n";
+        else entradaValida = true;
+    }
+}</pre>
+  <table>
+    <tr><th>Variable</th><th>¿Por qué existe?</th></tr>
+    <tr><td><code>entradaValida</code></td><td>Una bandera (<code>bool</code>) que controla el <code>while</code>: repetir hasta que la entrada sirva.</td></tr>
+    <tr><td><code>cin.clear()</code></td><td>Cuando <code>cin</code> falla, queda “bloqueado” y todas las lecturas siguientes fallan. <code>clear()</code> lo desbloquea.</td></tr>
+    <tr><td><code>cin.ignore(...)</code></td><td>Las letras que causaron el error siguen esperando en la entrada. Si no se botan, el <code>cin &gt;&gt;</code> siguiente las vuelve a leer y el programa entra en un bucle infinito.</td></tr>
+    <tr><td><code>numeroRondas &lt; MIN_RONDAS</code></td><td>Es la única comparación: solo se controla el mínimo, porque el enunciado no pone un máximo. Un número que no cabe en un <code>int</code> (más de 2 147 483 647) hace fallar a <code>cin</code> y cae en “Entrada invalida”.</td></tr>
+  </table>
+
+  <h3>Funciones de salida</h3>
+  <ul>
+    <li><code>mostrarDetalleTorneo</code> recorre <code>ranking[]</code> y llama a <code>mostrarDetalleEstrategia(estrategias, ranking[puesto])</code>: el detalle sale <b>en orden de puesto</b>.</li>
+    <li><code>setw(n)</code> reserva <code>n</code> espacios para el siguiente dato y <code>left</code>/<code>right</code> lo alinean: así la tabla sale en columnas.</li>
+    <li><code>fixed &lt;&lt; setprecision(2)</code> muestra los <code>double</code> con dos decimales (78.40).</li>
+    <li><code>const Estrategia &amp;estrategia = estrategias[indice];</code> crea un <b>alias corto</b> para no escribir <code>estrategias[indice].</code> en cada línea. Es <code>const &amp;</code>: no copia y no permite modificar.</li>
+    <li><code>mostrarGanador</code> compara con <code>puntajeMaximo</code> para anunciar a <b>todas</b> las estrategias empatadas en el primer lugar, no solo a <code>ranking[0]</code>.</li>
+  </ul>
+</section>
+
+<!-- ============================ 14 ============================ -->
+<section class="pb" id="s14">
+  <h2>14. Glosario de variables A–Z</h2>
+  <table class="gloss">
+    <tr><th>Nombre</th><th>Tipo</th><th>Archivo / función</th><th>Qué es y por qué existe</th></tr>
+    <tr><td>decidir</td><td>FuncionDecision</td><td>struct Estrategia</td><td>Dirección de la función que elige C/T. <a href="#s4">→ 4</a></td></tr>
+    <tr><td>derrotas / empates</td><td>int</td><td>struct Estrategia</td><td>Partidas perdidas / empatadas. <a href="#s11">→ 11</a></td></tr>
+    <tr><td>entradaValida</td><td>bool</td><td>leerNumeroRondas</td><td>Bandera que detiene el <code>while</code> de validación. <a href="#s13">→ 13</a></td></tr>
+    <tr><td>estrategias</td><td>Estrategia[8]</td><td>main</td><td>Las 8 fichas de los jugadores. <a href="#g-estrategias">→ 5</a></td></tr>
+    <tr><td>estrategiaA / estrategiaB</td><td>Estrategia&amp;</td><td>ejecutarPartida</td><td>Las dos fichas que juegan (por referencia para actualizar sus contadores). <a href="#s8">→ 8</a></td></tr>
+    <tr><td>funciones</td><td>FuncionDecision[8]</td><td>inicializarEstrategias</td><td>Arreglo paralelo a <code>nombres</code> con las 8 funciones. <a href="#s4">→ 4</a></td></tr>
+    <tr><td id="g-historialPropio">historialA / historialB</td><td>char* (new char[numeroRondas])</td><td>ejecutarPartida</td><td>Jugadas de cada lado en la partida actual; se liberan con <code>delete[]</code>. Se pasan como <code>historialPropio</code> / <code>historialOponente</code> según quién decide. <a href="#s6">→ 6</a></td></tr>
+    <tr><td>historialPropio / historialOponente</td><td>const char[]</td><td>funciones decidir…</td><td>Lo que la estrategia “ve”. <code>const</code>: una estrategia no puede cambiar el pasado. <a href="#s7">→ 7</a></td></tr>
+    <tr><td id="g-id">id</td><td>int</td><td>struct Estrategia</td><td>Posición de la ficha en <code>estrategias[]</code>.</td></tr>
+    <tr><td>i, j</td><td>int</td><td>ejecutarTorneo, calcularEstadisticas</td><td>i = estrategia actual, j = rival. <a href="#s10">→ 10</a></td></tr>
+    <tr><td>jugadaA / jugadaB</td><td>char</td><td>ejecutarPartida</td><td>Decisión de cada una en la ronda actual. <a href="#s8">→ 8</a></td></tr>
+    <tr><td>jugadaAnterior / jugadaAntepasada</td><td>char</td><td>decidirOjoPorDosOjos</td><td>Las dos últimas jugadas del rival.</td></tr>
+    <tr><td>k, pasada, temporal</td><td>int</td><td>ordenarRanking</td><td>Contadores de la burbuja y variable auxiliar del intercambio. <a href="#s12">→ 12</a></td></tr>
+    <tr><td>miJugadaAnterior / jugadaAnteriorRival</td><td>char</td><td>decidirPavlov</td><td>Lo que jugaron ambos en la ronda anterior. <a href="#g-miJugadaAnterior">→ 7</a></td></tr>
+    <tr><td>misPuntos / puntosRival</td><td>long long</td><td>calcularEstadisticas</td><td>Las dos celdas espejo de una partida. <a href="#s11">→ 11</a></td></tr>
+    <tr><td id="g-nombre">nombre / nombres</td><td>string / string[8]</td><td>struct / inicializar…</td><td>Texto que se imprime.</td></tr>
+    <tr><td>numeroRonda</td><td id="g-numeroRonda">int</td><td>funciones decidir…</td><td>Ronda que se está decidiendo (empieza en 1). <a href="#s6">→ 6</a></td></tr>
+    <tr><td>numeroRondas</td><td>int</td><td>main</td><td>Rondas por partida que elige el usuario (mayor a 200, sin máximo). <a href="#g-numeroRondas">→ 13</a></td></tr>
+    <tr><td>oponenteSeDefendio</td><td>bool</td><td>decidirSonda</td><td>¿El rival respondió a la traición inicial? <a href="#g-oponenteSeDefendio">→ 7</a></td></tr>
+    <tr><td>porcentajeC / porcentajeT</td><td>double</td><td>struct Estrategia</td><td>% de C y T en todo el torneo. <a href="#g-porcentajeC">→ 11</a></td></tr>
+    <tr><td id="g-puntajeTotal">puntajeTotal</td><td>long long</td><td>struct Estrategia</td><td>Suma de sus 7 partidas; decide el ranking. <a href="#s10">→ 10</a></td></tr>
+    <tr><td>puntajeActual / puntajeSiguiente</td><td>long long</td><td>ordenarRanking</td><td>Los dos puntajes que se comparan en cada paso.</td></tr>
+    <tr><td>puntosContra</td><td>long long[8]</td><td>struct Estrategia</td><td>Puntos contra cada rival. <a href="#g-puntosContra">→ 5</a></td></tr>
+    <tr><td>puntosI / puntosJ</td><td>long long</td><td>ejecutarTorneo</td><td>Resultado de la partida actual (los llena <code>ejecutarPartida</code> por referencia).</td></tr>
+    <tr><td>puntosPartidaA / B</td><td>long long&amp;</td><td>ejecutarPartida</td><td>Acumulan los puntos de toda la partida.</td></tr>
+    <tr><td>puntosRondaA / B</td><td>int</td><td>ejecutarPartida</td><td>Puntos de una sola ronda. <a href="#s9">→ 9</a></td></tr>
+    <tr><td>puntajeMaximo</td><td>long long</td><td>mostrarGanador</td><td>Puntaje del primer lugar, para detectar empates.</td></tr>
+    <tr><td>ranking</td><td>int[8]</td><td>main</td><td>Índices ordenados de mayor a menor. <a href="#g-ranking">→ 5</a></td></tr>
+    <tr><td>ronda</td><td>int</td><td>ejecutarPartida</td><td>Contador del bucle de rondas (1 … numeroRondas).</td></tr>
+    <tr><td>totalJugadas</td><td>long long</td><td>calcularEstadisticas</td><td><code>vecesC + vecesT</code>, divisor de los porcentajes.</td></tr>
+    <tr><td id="g-vecesC">vecesC / vecesT</td><td>long long</td><td>struct Estrategia</td><td>Cuántas veces cooperó / traicionó. Los suma <code>registrarJugada</code>.</td></tr>
+    <tr><td>victorias</td><td>int</td><td>struct Estrategia</td><td>Partidas con más puntos que el rival. <a href="#g-victorias">→ 11</a></td></tr>
+  </table>
+</section>
+
+<!-- ============================ 15 ============================ -->
+<section class="pb" id="s15">
+  <h2>15. Respuestas de los “Pruébalo”</h2>
+  <p id="r1"><span class="pill">1</span><b>No cabría.</b> Lo máximo por ronda son 5 puntos y cada estrategia juega 7 partidas: 7 × 5 × 100 000 000 = <b>3 500 000 000</b>, más que el máximo de un <code>int</code> (2 147 483 647). Con <code>int</code> el puntaje se desbordaría y saldría un número absurdo, incluso negativo, y el ranking quedaría mal. Por eso <code>puntajeTotal</code>, <code>puntosContra</code>, <code>vecesC</code> y <code>vecesT</code> son <code>long long</code>. Los historiales no tienen problema: se crean con <code>new</code> del tamaño exacto. <a class="back" href="#s2">← volver</a></p>
+  <p id="r2"><span class="pill">2</span><b>Vale 0.</b> Lo pone en 0 <code>inicializarEstrategias</code> y nunca se modifica, porque <code>j = i + 1</code> impide que una estrategia juegue contra sí misma. <a class="back" href="#s3">← volver</a></p>
+  <p id="r3"><span class="pill">3</span>(1) Escribir la función <code>char decidirRencorosaSuave(int, const char[], const char[])</code> y declararla en <code>estrategias_juego.h</code>. (2) Agregar su nombre al arreglo <code>nombres</code> y su función al arreglo <code>funciones</code>. (3) Cambiar <code>NUM_ESTRATEGIAS</code> a 9. No hace falta tocar <code>ejecutarPartida</code> ni <code>ejecutarTorneo</code>: esa es la ventaja del puntero a función. <a class="back" href="#s4">← volver</a></p>
+  <p id="r4"><span class="pill">4</span>Solo la posición <code>10 - 2 = 8</code> (la ronda 9), en los dos historiales: <code>historialOponente[8]</code> y <code>historialPropio[8]</code>. No necesita las rondas 1 a 8: si el rival traicionó en alguna, Vengativa ya habría jugado <span class="T">T</span> en la ronda 9 y <code>historialPropio[8]</code> lo mostraría. <a class="back" href="#s6">← volver</a></p>
+  <p id="r5"><span class="pill">5</span><b>T.</b> Siempre Cooperar jugó C en las rondas 2 y 3 (<code>historialOponente[1]</code> y <code>[2]</code>), así que <code>oponenteSeDefendio = false</code> y la Sonda entra en modo explotar. Resultado final: 5 + 3 + 3 + 247 × 5 = 1246 contra 6. <a class="back" href="#s7">← volver</a></p>
+  <p id="r6"><span class="pill">6</span>En este caso el resultado <b>no cambia</b> (750 – 750): cuando B decide la ronda <code>r</code>, Tit for Tat lee <code>historialA[r - 2]</code>, la ronda anterior, y nunca la posición <code>r - 1</code> que A acaba de escribir. Pero el programa quedaría frágil: si alguien agrega una estrategia que lea <code>historialOponente[numeroRonda - 1]</code>, B podría ver la jugada actual de A antes de decidir (A no podría hacer lo mismo con B). El orden “primero deciden las dos, luego se guarda” garantiza que las decisiones sean simultáneas y que nadie pueda hacer trampa. <a class="back" href="#s8">← volver</a></p>
+  <p id="r7"><span class="pill">7</span>Sin <code>&amp;</code>, la función asignaría los puntos a una <b>copia local</b> que desaparece al terminar. <code>puntosRondaA</code> y <code>puntosRondaB</code> en <code>ejecutarPartida</code> nunca se inicializan (tienen basura), así que los puntajes serían números basura o cero, según el compilador. <a class="back" href="#s9">← volver</a></p>
+  <p id="r8"><span class="pill">8</span>10 × 9 / 2 = <b>45 partidas</b>, y cada estrategia juega <b>9</b> (contra todas menos ella misma). <a class="back" href="#s10">← volver</a></p>
+  <p id="r9"><span class="pill">9</span>Ganar una partida solo significa sacar más que el rival, aunque ambos saquen poco. Siempre Traicionar gana 254 – 249 contra Tit for Tat: gana, pero solo con 254 puntos. Tit for Tat empata 750 – 750 contra las estrategias amables: no gana, pero suma 750. El ranking usa <code>puntajeTotal</code>, no <code>victorias</code>. <a class="back" href="#s11">← volver</a></p>
+  <p id="r10"><span class="pill">10</span>Cambiar la comparación <code>if (puntajeActual &lt; puntajeSiguiente)</code> por <code>if (puntajeActual &gt; puntajeSiguiente)</code>. Nada más. <a class="back" href="#s12">← volver</a></p>
+</section>
+
+</body>
+</html>

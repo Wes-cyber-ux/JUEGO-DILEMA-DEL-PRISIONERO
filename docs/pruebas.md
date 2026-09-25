@@ -25,8 +25,9 @@ Probar que el programa vuelve a preguntar cuando la entrada no es válida:
 |---|---|
 | `abc` | "Entrada invalida. Debe ingresar un numero entero." |
 | `100` o `200` | "El numero de rondas debe ser mayor a 200..." |
-| `5000` | Mismo mensaje (supera `MAX_RONDAS = 1000`) |
 | `250` | Se acepta y el torneo se ejecuta |
+| `5000` o `100000000` | Se acepta (no hay máximo). Con 100 000 000 rondas tarda unos 26 s |
+| `99999999999` | "Entrada invalida..." (no cabe en un `int`) |
 
 ## 2. Partidas deterministas (con 250 rondas)
 

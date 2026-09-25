@@ -16,8 +16,7 @@ int leerNumeroRondas()
 
     while (!entradaValida)
     {
-        cout << "Ingrese el numero de rondas por partida (entre "
-             << MIN_RONDAS << " y " << MAX_RONDAS << "): ";
+        cout << "Ingrese el numero de rondas por partida (mayor a 200): ";
         cin >> numeroRondas;
 
         if (cin.fail())
@@ -32,10 +31,9 @@ int leerNumeroRondas()
         {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            if (numeroRondas < MIN_RONDAS || numeroRondas > MAX_RONDAS)
+            if (numeroRondas < MIN_RONDAS)
             {
-                cout << "El numero de rondas debe ser mayor a 200 y como maximo "
-                     << MAX_RONDAS << ".\n";
+                cout << "El numero de rondas debe ser mayor a 200.\n";
             }
             else
             {

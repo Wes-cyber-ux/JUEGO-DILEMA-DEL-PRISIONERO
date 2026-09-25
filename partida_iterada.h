@@ -11,6 +11,6 @@
 // Devuelve en puntosPartidaA / puntosPartidaB los puntos de cada una en esta
 // partida, y suma a cada estrategia las veces que eligio C y T.
 void ejecutarPartida(Estrategia &estrategiaA, Estrategia &estrategiaB, int numeroRondas,
-                     int &puntosPartidaA, int &puntosPartidaB);
+                     long long &puntosPartidaA, long long &puntosPartidaB);
 
 #endif // PARTIDA_ITERADA_H

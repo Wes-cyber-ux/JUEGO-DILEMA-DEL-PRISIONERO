@@ -127,11 +127,11 @@ El programa está dividido en módulos `.h` / `.cpp`, cada uno con una sola resp
 
 | Función | Qué hace |
 |---|---|
-| `int leerNumeroRondas()` | Pide el número de rondas hasta que sea un entero entre 201 y 1000. |
+| `int leerNumeroRondas()` | Pide el número de rondas hasta que sea un entero mayor a 200 (no hay máximo). |
 | `void inicializarEstrategias(Estrategia[])` | Asigna id, nombre y función a cada estrategia y pone sus contadores en 0. |
 | `char decidirXxx(int, const char[], const char[])` | Una por estrategia; devuelve `'C'` o `'T'`. |
 | `void calcularPuntosRonda(char, char, int&, int&)` | Aplica la matriz de pagos a una ronda. |
-| `void ejecutarPartida(Estrategia&, Estrategia&, int, int&, int&)` | Juega todas las rondas entre dos estrategias, guarda el historial y cuenta las C y T. |
+| `void ejecutarPartida(Estrategia&, Estrategia&, int, long long&, long long&)` | Juega todas las rondas entre dos estrategias, guarda el historial y cuenta las C y T. |
 | `void ejecutarTorneo(Estrategia[], int)` | Doble bucle `i`, `j = i + 1`: 28 partidas sin repetir. Guarda `puntosContra` y el `puntajeTotal`. |
 | `void calcularEstadisticas(Estrategia[])` | Calcula las victorias, derrotas y empates y los porcentajes de C y T. |
 | `void ordenarRanking(const Estrategia[], int[])` | Ordena los índices por puntaje (burbuja, de mayor a menor). |
@@ -142,11 +142,15 @@ El programa está dividido en módulos `.h` / `.cpp`, cada uno con una sola resp
 - **`struct Estrategia`**: agrupa todo lo de una estrategia: `id`, `nombre`, `decidir` (puntero a
   su función de decisión), `puntajeTotal`, `puntosContra[NUM_ESTRATEGIAS]` (puntos contra cada
   rival), `vecesC`, `vecesT`, `victorias`, `derrotas`, `empates`, `porcentajeC` y `porcentajeT`.
+  Los puntajes y los contadores de C y T son `long long`: como no hay límite de rondas, con `int`
+  (máximo 2 147 483 647) podrían desbordarse.
 - **`Estrategia estrategias[NUM_ESTRATEGIAS]`**: arreglo con los 8 participantes.
 - **`int ranking[NUM_ESTRATEGIAS]`**: índices de las estrategias ordenados por puntaje. Se ordenan
   los índices, no las estructuras, para no perder la correspondencia con `puntosContra`.
-- **`char historialA[MAX_RONDAS]`, `char historialB[MAX_RONDAS]`**: jugadas de cada estrategia
-  dentro de una partida (se crean de nuevo en cada partida). La ronda N está en la posición N − 1.
+- **`char *historialA = new char[numeroRondas]`, `char *historialB = new char[numeroRondas]`**:
+  jugadas de cada estrategia dentro de una partida. Como no hay máximo de rondas, se crean con
+  memoria dinámica del tamaño exacto al inicio de cada partida y se liberan con `delete[]` al
+  terminarla. La ronda N está en la posición N − 1.
 - **`typedef char (*FuncionDecision)(int, const char[], const char[])`**: permite guardar la
   función de cada estrategia en su estructura y llamarla desde `ejecutarPartida` sin usar
   `if`/`switch` por estrategia.
@@ -156,9 +160,8 @@ El programa está dividido en módulos `.h` / `.cpp`, cada uno con una sola resp
 | Nombre | Valor | Uso |
 |---|---|---|
 | `NUM_ESTRATEGIAS` | 8 | Tamaño de los arreglos y límites de los bucles del torneo. |
-| `MIN_RONDAS` | 201 | El enunciado exige más de 200 rondas por partida. |
-| `MAX_RONDAS` | 1000 | Tamaño de los arreglos de historial. |
-| `numeroRondas` | lo ingresa el usuario | Rondas de cada partida. |
+| `MIN_RONDAS` | 201 | El enunciado exige más de 200 rondas por partida. No hay máximo. |
+| `numeroRondas` | lo ingresa el usuario | Rondas de cada partida (mayor a 200, sin límite superior). También es el tamaño de los historiales. |
 | `PUNTOS_COOPERACION_MUTUA`, `PUNTOS_TRAICION_EXITOSA`, `PUNTOS_ENGANADO`, `PUNTOS_TRAICION_MUTUA` | 3, 5, 0, 1 | Valores de la matriz de pagos. |
 
 ### Diagrama de módulos

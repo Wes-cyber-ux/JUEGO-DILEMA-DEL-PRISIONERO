@@ -11,7 +11,7 @@ o pegando el bloque en https://mermaid.live para exportarlo como PNG/SVG al info
 ### 1.1 Qué contiene cada archivo
 
 ```text
-tipos_torneo.h ............ NUM_ESTRATEGIAS, MIN_RONDAS, MAX_RONDAS,
+tipos_torneo.h ............ NUM_ESTRATEGIAS, MIN_RONDAS (no hay máximo),
                             typedef FuncionDecision, struct Estrategia
                             (lo incluyen todos los demás módulos)
 
@@ -111,7 +111,7 @@ flowchart TD
         sep["mostrarSeparador()"]
     end
 
-    TIPOS[["tipos_torneo.h<br/>struct Estrategia · FuncionDecision<br/>NUM_ESTRATEGIAS · MIN_RONDAS · MAX_RONDAS"]]
+    TIPOS[["tipos_torneo.h<br/>struct Estrategia · FuncionDecision<br/>NUM_ESTRATEGIAS · MIN_RONDAS"]]
 
     main --> leer
     main --> init
@@ -151,7 +151,7 @@ y el bucle de rondas de cada partida.
 flowchart TD
     A([Inicio]) --> B["srand(time(0))<br/>semilla para la estrategia Aleatoria"]
     B --> C[/"Pedir número de rondas"/]
-    C --> D{"¿Es un entero entre<br/>201 y 1000?"}
+    C --> D{"¿Es un entero<br/>mayor a 200?"}
     D -- No --> E[/"Mostrar mensaje de error"/]
     E --> C
     D -- Sí --> F["inicializarEstrategias()<br/>8 estrategias: nombre, función,<br/>contadores y puntajes en 0"]
@@ -163,14 +163,15 @@ flowchart TD
     J -- No --> K["i = i + 1"]
     K --> H
 
-    J -- Sí --> L["ejecutarPartida(i, j)<br/>ronda = 1, puntos de la partida = 0"]
+    J -- Sí --> L["ejecutarPartida(i, j)<br/>historiales con new char[numeroRondas]<br/>ronda = 1, puntos de la partida = 0"]
     L --> M{"¿ronda ≤ número<br/>de rondas?"}
     M -- Sí --> N["Ambas estrategias deciden C o T<br/>mirando los historiales"]
     N --> O["Guardar jugadas en el historial<br/>y sumar veces C / T"]
     O --> P["calcularPuntosRonda()<br/>y sumar a los puntos de la partida"]
     P --> Q["ronda = ronda + 1"]
     Q --> M
-    M -- No --> R["Guardar puntosContra[i][j] y [j][i]<br/>sumar al puntajeTotal de i y de j"]
+    M -- No --> X["delete[] historialA / historialB<br/>liberar la memoria de la partida"]
+    X --> R["Guardar puntosContra[i][j] y [j][i]<br/>sumar al puntajeTotal de i y de j"]
     R --> S["j = j + 1"]
     S --> J
 

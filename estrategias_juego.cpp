@@ -54,18 +54,23 @@ char decidirTitForTat(int numeroRonda, const char historialPropio[], const char 
 
 // ----------------------------------------------------------------------------
 // 5. Vengativa: coopera mientras el oponente nunca haya traicionado.
-// Recorre todo el historial del oponente; si encuentra una sola 'T',
-// traiciona (y como esa 'T' siempre seguira en el historial, traicionara
-// en todas las rondas siguientes).
+// Cuando el oponente traiciona, Vengativa traiciona desde la ronda siguiente
+// y ya no vuelve a cooperar. Por eso basta con mirar la ronda anterior:
+//   - si el oponente traiciono en la ronda anterior -> empieza la venganza
+//   - si yo traicione en la ronda anterior          -> la venganza ya empezo
+// Asi no hace falta recorrer todo el historial en cada ronda (que con
+// muchas rondas haria el torneo muy lento).
 // ----------------------------------------------------------------------------
 char decidirVengativa(int numeroRonda, const char historialPropio[], const char historialOponente[])
 {
-    for (int i = 0; i < numeroRonda - 1; i++)
+    if (numeroRonda == 1)
     {
-        if (historialOponente[i] == 'T')
-        {
-            return 'T';
-        }
+        return 'C';
+    }
+
+    if (historialOponente[numeroRonda - 2] == 'T' || historialPropio[numeroRonda - 2] == 'T')
+    {
+        return 'T';
     }
     return 'C';
 }
