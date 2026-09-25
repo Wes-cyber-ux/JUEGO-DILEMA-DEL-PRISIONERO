@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Reporte Proyecto 1 - Dilema del Prisionero</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
+  :root { --ink:#1d2330; --muted:#5b6475; --line:#d6dbe4; --accent:#1f5fa8; --soft:#eef3fa; --good:#2e7d4f; --bad:#b3412e; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Calibri, Arial, sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.5; margin: 0; background:#fff; }
+  h1 { font-size: 20pt; color: var(--accent); margin: 0 0 6px; }
+  h2 { font-size: 15pt; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 4px; margin: 26px 0 10px; page-break-after: avoid; }
+  h3 { font-size: 12pt; margin: 18px 0 6px; page-break-after: avoid; }
+  p { margin: 6px 0; text-align: justify; }
+  code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; background: #f2f4f8; padding: 0 3px; border-radius: 3px; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; background: #f6f8fb; border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: 8px 10px; white-space: pre-wrap; page-break-inside: avoid; margin: 8px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid var(--line); padding: 4px 7px; vertical-align: top; text-align: left; }
+  th { background: var(--soft); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .pb { page-break-before: always; }
+  .nobreak { page-break-inside: avoid; }
+  ul, ol { margin: 6px 0 6px 20px; padding: 0; }
+  li { margin: 3px 0; }
+  .note { background: #fff8e6; border: 1px solid #f0d99a; padding: 7px 10px; border-radius: 4px; font-size: 9.5pt; margin: 8px 0; }
+
+  /* Portada */
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .cover .top { text-align: center; margin-top: 10mm; }
+  .cover .uni { font-size: 14pt; font-weight: 600; letter-spacing: .5px; }
+  .cover .curso { color: var(--muted); margin-top: 4px; }
+  .cover .titulo { margin-top: 38mm; text-align: center; }
+  .cover .titulo .p { color: var(--muted); font-size: 12pt; text-transform: uppercase; letter-spacing: 2px; }
+  .cover .titulo h1 { font-size: 26pt; margin: 8px 0; }
+  .cover .titulo .sub { font-size: 13pt; color: var(--muted); }
+  .cover table td { height: 24px; }
+  .cover .meta { width: 100%; margin-bottom: 8mm; }
+
+  /* Matriz de resultados */
+  .matrix th, .matrix td { text-align: center; padding: 3px 4px; font-size: 8.8pt; }
+  .matrix th.rowh { text-align: left; white-space: nowrap; }
+  .matrix td.self { background: #e4e7ec; color: #999; }
+  .w { background: #dcefe3; } .l { background: #f7dcd6; } .t { background: #eef0f3; }
+  .legend span { display: inline-block; padding: 0 8px; margin-right: 6px; border: 1px solid var(--line); font-size: 8.8pt; }
+
+  /* Barras del ranking */
+  .bar { height: 11px; background: var(--accent); border-radius: 2px; }
+  .barcell { width: 32%; }
+
+  /* Diagrama de flujo */
+  .flow { display: flex; flex-direction: column; align-items: center; font-size: 9pt; margin: 8px 0; }
+  .fnode { border: 1.5px solid var(--ink); background: #fff; padding: 5px 10px; border-radius: 4px; text-align: center; min-width: 250px; max-width: 360px; }
+  .fnode.term { border-radius: 20px; background: var(--soft); font-weight: 600; min-width: 120px; }
+  .fnode.io { transform: skew(-12deg); background: #fbfbfd; }
+  .fnode.io > span { display: inline-block; transform: skew(12deg); }
+  .fnode.dec { background: #fff8e6; border-color: #c99a1c; }
+  .fnode small { color: var(--muted); display: block; }
+  .arrow { width: 2px; height: 14px; background: var(--ink); position: relative; }
+  .arrow::after { content: ""; position: absolute; bottom: -5px; left: -4px; border: 5px solid transparent; border-top: 6px solid var(--ink); border-bottom: 0; }
+  .loop { border: 1.5px dashed var(--accent); border-radius: 8px; padding: 18px 14px 10px; position: relative; display: flex; flex-direction: column; align-items: center; background: rgba(31,95,168,.03); }
+  .loop > .lbl { position: absolute; top: 2px; left: 10px; font-size: 8.3pt; color: var(--accent); font-weight: 600; }
+  .loop.inner { border-color: #2e7d4f; background: rgba(46,125,79,.04); }
+  .loop.inner > .lbl { color: #2e7d4f; }
+  .side { font-size: 8.3pt; color: var(--bad); margin-top: 2px; }
+
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc li { list-style: none; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<section class="cover">
+  <div class="top">
+    <div class="uni">UTEC — Universidad de Ingeniería y Tecnología</div>
+    <div class="curso">Programación II — Laboratorio · Periodo 2026-2 · Profesor: Henry Gallegos</div>
+  </div>
+  <div class="titulo">
+    <div class="p">Proyecto 1 · Informe</div>
+    <h1>Torneo de Estrategias del<br>Dilema del Prisionero Iterado</h1>
+    <div class="sub">Simulación en C++ con programación estructurada</div>
+  </div>
+  <div class="meta">
+    <h3>Integrantes del grupo</h3>
+    <table>
+      <tr><th style="width:6%">#</th><th>Nombre completo</th><th style="width:20%">Código</th><th style="width:22%">% de participación</th></tr>
+      <tr><td>1</td><td></td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td></td></tr>
+    </table>
+    <p><b>Fecha de entrega:</b> ____________________</p>
+  </div>
+</section>
+
+<!-- ===================== INDICE ===================== -->
+<section class="pb">
+  <h2>Contenido</h2>
+  <ol class="toc">
+    <li><a href="#intro">1. Introducción</a></li>
+    <li><a href="#estrategias">2. Descripción de las estrategias</a></li>
+    <li><a href="#diseno">3. Diseño del programa</a></li>
+    <li><a href="#resultados">4. Análisis de resultados</a></li>
+    <li><a href="#conclusiones">5. Conclusiones</a></li>
+    <li><a href="#biblio">6. Bibliografía y fuentes</a></li>
+    <li><a href="#anexo">Anexo: compilación y pruebas</a></li>
+  </ol>
+
+  <h2 id="intro">1. Introducción</h2>
+  <p>El <b>Dilema del Prisionero</b> es un problema clásico de la teoría de juegos. Dos participantes deciden, sin comunicarse, si <b>cooperan (C)</b> o <b>traicionan (T)</b>. En una sola ronda traicionar siempre da más puntos que cooperar: 5 contra 3 si el otro coopera y 1 contra 0 si el otro traiciona. Sin embargo, si ambos traicionan obtienen 1 punto cada uno, mucho menos que los 3 que habrían obtenido cooperando.</p>
+
+  <table style="width:60%;margin-left:auto;margin-right:auto">
+    <tr><th>Jugador A \ Jugador B</th><th>B coopera (C)</th><th>B traiciona (T)</th></tr>
+    <tr><th>A coopera (C)</th><td>A = 3, B = 3</td><td>A = 0, B = 5</td></tr>
+    <tr><th>A traiciona (T)</th><td>A = 5, B = 0</td><td>A = 1, B = 1</td></tr>
+  </table>
+
+  <p>En el <b>Dilema del Prisionero Iterado</b> el juego se repite muchas rondas contra el mismo rival. Como cada jugador recuerda lo que hizo el otro, aparecen estrategias que premian la cooperación y castigan la traición, y la mejor decisión deja de ser simplemente traicionar.</p>
+  <p>El objetivo del proyecto es implementar en C++, con programación estructurada (funciones, estructuras y arreglos, sin clases), un torneo <i>todos contra todos</i> en el que 8 estrategias (6 obligatorias y 2 diseñadas por el equipo) se enfrentan en partidas de más de 200 rondas. El programa calcula el puntaje de cada estrategia contra cada rival, sus estadísticas (victorias, derrotas, empates y porcentajes de cooperación y traición) y el ranking final, para determinar la estrategia ganadora y analizar por qué ganó.</p>
+</section>
+
+<!-- ===================== ESTRATEGIAS ===================== -->
+<section>
+  <h2 id="estrategias">2. Descripción de las estrategias</h2>
+  <h3>2.1 Estrategias obligatorias</h3>
+  <table>
+    <tr><th style="width:4%">#</th><th style="width:20%">Estrategia</th><th>Comportamiento</th><th style="width:26%">Función en el código</th></tr>
+    <tr><td>1</td><td>Siempre Cooperar</td><td>Juega C en todas las rondas.</td><td><code>decidirSiempreCooperar</code></td></tr>
+    <tr><td>2</td><td>Siempre Traicionar</td><td>Juega T en todas las rondas.</td><td><code>decidirSiempreTraicionar</code></td></tr>
+    <tr><td>3</td><td>Aleatoria</td><td>Elige C o T con 50 % de probabilidad (<code>rand() % 2</code>).</td><td><code>decidirAleatoria</code></td></tr>
+    <tr><td>4</td><td>Tit for Tat</td><td>Coopera en la ronda 1; después copia la jugada anterior del oponente.</td><td><code>decidirTitForTat</code></td></tr>
+    <tr><td>5</td><td>Vengativa</td><td>Coopera hasta que el oponente traicione una vez; desde ahí traiciona siempre.</td><td><code>decidirVengativa</code></td></tr>
+    <tr><td>6</td><td>Ojo por Dos Ojos</td><td>Coopera en las rondas 1 y 2; desde la 3 traiciona solo si el oponente traicionó en las dos rondas anteriores.</td><td><code>decidirOjoPorDosOjos</code></td></tr>
+  </table>
+
+  <h3>2.2 Estrategia propia 1: Ganar-Mantener, Perder-Cambiar (Pavlov)</h3>
+  <p><b>Tipo:</b> reactiva. <b>Descripción:</b> evalúa el resultado de su última jugada. Si le fue bien (obtuvo 3 o 5 puntos) la repite; si le fue mal (0 o 1 punto) la cambia. En la ronda 1 coopera.</p>
+  <table style="width:85%">
+    <tr><th>Ronda anterior (yo, oponente)</th><th class="n">Puntos obtenidos</th><th>Evaluación</th><th>Jugada actual</th></tr>
+    <tr><td>C, C</td><td class="n">3</td><td>Ganó → mantiene</td><td><b>C</b></td></tr>
+    <tr><td>T, C</td><td class="n">5</td><td>Ganó → mantiene</td><td><b>T</b></td></tr>
+    <tr><td>C, T</td><td class="n">0</td><td>Perdió → cambia</td><td><b>T</b></td></tr>
+    <tr><td>T, T</td><td class="n">1</td><td>Perdió → cambia</td><td><b>C</b></td></tr>
+  </table>
+  <p><b>Algoritmo:</b> solo mira la ronda inmediatamente anterior (<code>historialPropio[numeroRonda - 2]</code> y <code>historialOponente[numeroRonda - 2]</code>). Las cuatro filas de la tabla se reducen a una sola regla: <b>si ambos jugaron lo mismo, coopera; si jugaron distinto, traiciona.</b></p>
+  <pre>if (miJugadaAnterior == jugadaAnteriorRival) return 'C';
+return 'T';</pre>
+  <p><b>Justificación:</b> se diferencia de Tit for Tat porque no copia al oponente, sino que reacciona a su propio resultado. Así puede salir sola de una cadena de traiciones mutuas (después de T-T vuelve a cooperar) y, al mismo tiempo, sigue aprovechando a un rival que no castiga (después de T-C sigue traicionando).</p>
+
+  <h3>2.3 Estrategia propia 2: Sonda (Prober)</h3>
+  <p><b>Tipo:</b> mixta. <b>Descripción:</b> empieza con una secuencia fija para “probar” al oponente y, según cómo reacciona, decide si coopera con él o si lo explota durante el resto de la partida.</p>
+  <ol>
+    <li>Ronda 1: <b>T</b>. Ronda 2: <b>C</b>. Ronda 3: <b>C</b> (fase de exploración).</li>
+    <li>Desde la ronda 4, si el oponente jugó T en la ronda 2 o en la 3 (se defendió de la traición inicial), la Sonda se comporta como Tit for Tat.</li>
+    <li>Si el oponente jugó C en las rondas 2 y 3 (no se defendió), la Sonda traiciona siempre.</li>
+  </ol>
+  <pre>bool oponenteSeDefendio = (historialOponente[1] == 'T' || historialOponente[2] == 'T');
+if (oponenteSeDefendio) return historialOponente[numeroRonda - 2];   // modo Tit for Tat
+return 'T';                                                          // modo explotar</pre>
+  <p><b>Algoritmo:</b> la variable de estado <code>oponenteSeDefendio</code> se calcula a partir del historial. Como las jugadas de las rondas 2 y 3 ya no cambian, el modo queda fijado para el resto de la partida. Se calcula desde el historial (y no con una variable <code>static</code>) para que cada partida empiece limpia y no se mezclen rivales distintos.</p>
+  <p><b>Justificación:</b> busca sacar el máximo contra estrategias ingenuas, como Siempre Cooperar, sin perder demasiado contra estrategias que castigan, como Tit for Tat. Es diferente de todas las obligatorias porque tiene dos fases: exploración y decisión.</p>
+</section>
+
+<!-- ===================== DISEÑO ===================== -->
+<section class="pb">
+  <h2 id="diseno">3. Diseño del programa</h2>
+  <h3>3.1 Organización general</h3>
+  <p>El programa está dividido en módulos <code>.h</code>/<code>.cpp</code>, cada uno con una sola responsabilidad. <code>main()</code> solo llama a las funciones en orden y no contiene lógica del juego.</p>
+  <table>
+    <tr><th style="width:30%">Archivo</th><th>Responsabilidad</th></tr>
+    <tr><td><code>tipos_torneo.h</code></td><td>Constantes globales, tipo <code>FuncionDecision</code> y <code>struct Estrategia</code>.</td></tr>
+    <tr><td><code>lectura_rondas.h/.cpp</code></td><td>Lectura validada del número de rondas por teclado.</td></tr>
+    <tr><td><code>estrategias_juego.h/.cpp</code></td><td>Las 8 funciones de decisión e inicialización del arreglo de estrategias.</td></tr>
+    <tr><td><code>matriz_pagos.h/.cpp</code></td><td>Puntos de una ronda según la matriz de pagos.</td></tr>
+    <tr><td><code>partida_iterada.h/.cpp</code></td><td>Una partida completa entre dos estrategias.</td></tr>
+    <tr><td><code>torneo_round_robin.h/.cpp</code></td><td>Torneo todos contra todos (cada par una sola vez).</td></tr>
+    <tr><td><code>estadisticas_torneo.h/.cpp</code></td><td>Victorias, derrotas, empates, porcentajes y ranking.</td></tr>
+    <tr><td><code>reporte_resultados.h/.cpp</code></td><td>Impresión del detalle, del ranking y de la ganadora.</td></tr>
+    <tr><td><code>main_torneo.cpp</code></td><td>Función <code>main()</code>.</td></tr>
+  </table>
+
+  <h3>3.2 Principales funciones</h3>
+  <table>
+    <tr><th style="width:42%">Función</th><th>Qué hace</th></tr>
+    <tr><td><code>int leerNumeroRondas()</code></td><td>Pide el número de rondas hasta que sea un entero mayor a 200 (no hay máximo).</td></tr>
+    <tr><td><code>void inicializarEstrategias(Estrategia[])</code></td><td>Asigna id, nombre y función a cada estrategia y pone sus contadores en 0.</td></tr>
+    <tr><td><code>char decidirXxx(int, const char[], const char[])</code></td><td>Una por estrategia; devuelve <code>'C'</code> o <code>'T'</code>.</td></tr>
+    <tr><td><code>void calcularPuntosRonda(char, char, int&amp;, int&amp;)</code></td><td>Aplica la matriz de pagos a una ronda.</td></tr>
+    <tr><td><code>void ejecutarPartida(Estrategia&amp;, Estrategia&amp;, int, long long&amp;, long long&amp;)</code></td><td>Juega todas las rondas entre dos estrategias, guarda el historial y cuenta las C y T.</td></tr>
+    <tr><td><code>void ejecutarTorneo(Estrategia[], int)</code></td><td>Doble bucle <code>i</code>, <code>j = i + 1</code>: 28 partidas sin repetir. Guarda <code>puntosContra</code> y <code>puntajeTotal</code>.</td></tr>
+    <tr><td><code>void calcularEstadisticas(Estrategia[])</code></td><td>Calcula victorias, derrotas, empates y porcentajes de C y T.</td></tr>
+    <tr><td><code>void ordenarRanking(const Estrategia[], int[])</code></td><td>Ordena los índices por puntaje (burbuja, de mayor a menor).</td></tr>
+    <tr><td><code>mostrarDetalleTorneo</code>, <code>mostrarDetalleEstrategia</code>, <code>mostrarRanking</code>, <code>mostrarGanador</code></td><td>Salida por consola.</td></tr>
+  </table>
+
+  <h3>3.3 Estructuras de datos</h3>
+  <ul>
+    <li><b><code>struct Estrategia</code></b>: agrupa todo lo de una estrategia: <code>id</code>, <code>nombre</code>, <code>decidir</code> (puntero a su función de decisión), <code>puntajeTotal</code>, <code>puntosContra[NUM_ESTRATEGIAS]</code>, <code>vecesC</code>, <code>vecesT</code>, <code>victorias</code>, <code>derrotas</code>, <code>empates</code>, <code>porcentajeC</code> y <code>porcentajeT</code>. Los puntajes y los contadores de C y T son <code>long long</code>: como no hay límite de rondas, con <code>int</code> (máximo 2 147 483 647) podrían desbordarse.</li>
+    <li><b><code>Estrategia estrategias[NUM_ESTRATEGIAS]</code></b>: arreglo con los 8 participantes.</li>
+    <li><b><code>int ranking[NUM_ESTRATEGIAS]</code></b>: índices de las estrategias ordenados por puntaje. Se ordenan los índices, no las estructuras, para no perder la correspondencia con <code>puntosContra</code>.</li>
+    <li><b><code>char *historialA = new char[numeroRondas]</code>, <code>char *historialB = new char[numeroRondas]</code></b>: jugadas de cada estrategia en una partida. Como el número de rondas no tiene máximo, se crean con memoria dinámica del tamaño exacto al inicio de cada partida y se liberan con <code>delete[]</code> al terminarla. La ronda N está en la posición N − 1.</li>
+    <li><b><code>typedef char (*FuncionDecision)(int, const char[], const char[])</code></b>: permite guardar la función de cada estrategia en su estructura y llamarla desde <code>ejecutarPartida</code> sin usar <code>if</code>/<code>switch</code> por estrategia.</li>
+  </ul>
+
+  <h3>3.4 Variables y constantes importantes</h3>
+  <table>
+    <tr><th>Nombre</th><th>Valor</th><th>Uso</th></tr>
+    <tr><td><code>NUM_ESTRATEGIAS</code></td><td>8</td><td>Tamaño de los arreglos y límite de los bucles del torneo.</td></tr>
+    <tr><td><code>MIN_RONDAS</code></td><td>201</td><td>El enunciado exige más de 200 rondas por partida. No hay máximo.</td></tr>
+    <tr><td><code>numeroRondas</code></td><td>lo ingresa el usuario</td><td>Rondas de cada partida (mayor a 200, sin límite superior). También es el tamaño de los historiales.</td></tr>
+    <tr><td><code>PUNTOS_COOPERACION_MUTUA</code>, <code>PUNTOS_TRAICION_EXITOSA</code>, <code>PUNTOS_ENGANADO</code>, <code>PUNTOS_TRAICION_MUTUA</code></td><td>3, 5, 0, 1</td><td>Valores de la matriz de pagos.</td></tr>
+  </table>
+</section>
+
+<section class="pb">
+  <h3>3.5 Diagrama de módulos (quién llama a quién)</h3>
+<pre>main()
+├── srand(time(0))
+├── leerNumeroRondas()                          [lectura_rondas]
+├── inicializarEstrategias()                    [estrategias_juego]
+├── ejecutarTorneo()                            [torneo_round_robin]
+│   └── ejecutarPartida()   x 28 partidas       [partida_iterada]
+│       ├── estrategia.decidir(...) → decidirXxx()   [estrategias_juego]
+│       ├── registrarJugada()
+│       └── calcularPuntosRonda()               [matriz_pagos]
+├── calcularEstadisticas()                      [estadisticas_torneo]
+├── ordenarRanking()                            [estadisticas_torneo]
+├── mostrarDetalleTorneo()                      [reporte_resultados]
+│   └── mostrarDetalleEstrategia()  x 8
+├── mostrarRanking()                            [reporte_resultados]
+└── mostrarGanador()                            [reporte_resultados]</pre>
+
+  <h3>3.6 Diagrama de flujo del programa principal</h3>
+  <div class="flow nobreak">
+    <div class="fnode term">Inicio</div><div class="arrow"></div>
+    <div class="fnode">srand(time(0))<small>semilla para la estrategia Aleatoria</small></div><div class="arrow"></div>
+    <div class="fnode io"><span>Pedir número de rondas</span></div><div class="arrow"></div>
+    <div class="fnode dec">¿Es un entero mayor a 200?</div>
+    <div class="side">No → mostrar mensaje de error y volver a pedir</div>
+    <div class="arrow"></div>
+    <div class="fnode">inicializarEstrategias()<small>8 estrategias: nombre, función, contadores en 0</small></div><div class="arrow"></div>
+    <div class="loop">
+      <span class="lbl">ejecutarTorneo(): para i = 0..7, para j = i+1..7 &nbsp;(28 partidas)</span>
+      <div class="fnode">ejecutarPartida(estrategias[i], estrategias[j])<small>historiales con new char[numeroRondas], puntos de la partida = 0</small></div><div class="arrow"></div>
+      <div class="loop inner">
+        <span class="lbl">para ronda = 1..numeroRondas</span>
+        <div class="fnode">jugadaA = A.decidir(...) · jugadaB = B.decidir(...)</div><div class="arrow"></div>
+        <div class="fnode">guardar en historialA / historialB · sumar vecesC / vecesT</div><div class="arrow"></div>
+        <div class="fnode">calcularPuntosRonda() y sumar a los puntos de la partida</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="fnode">delete[] historialA / historialB<small>se libera la memoria de la partida</small></div><div class="arrow"></div>
+      <div class="fnode">puntosContra[j] de i y puntosContra[i] de j<small>sumar al puntajeTotal de ambas</small></div>
+    </div>
+    <div class="arrow"></div>
+    <div class="fnode">calcularEstadisticas()<small>victorias, derrotas, empates, % C y % T</small></div><div class="arrow"></div>
+    <div class="fnode">ordenarRanking()<small>burbuja sobre los índices, de mayor a menor</small></div><div class="arrow"></div>
+    <div class="fnode io"><span>mostrarDetalleTorneo() · mostrarRanking() · mostrarGanador()</span></div><div class="arrow"></div>
+    <div class="fnode term">Fin</div>
+  </div>
+</section>
+
+<!-- ===================== RESULTADOS ===================== -->
+<section class="pb">
+  <h2 id="resultados">4. Análisis de resultados</h2>
+  <p><b>Número de rondas usado: 250</b> por partida (8 estrategias, 28 partidas, 7 partidas por estrategia). Los resultados que no involucran a la estrategia Aleatoria son deterministas y se comprobaron a mano (ver Anexo).</p>
+
+  <h3>4.1 Ranking final</h3>
+  <table>
+    <tr><th>Pos</th><th>Estrategia</th><th class="n">Puntos</th><th class="barcell"></th><th class="n">G</th><th class="n">P</th><th class="n">E</th><th class="n">% C</th><th class="n">% T</th></tr>
+    <tr><td>1</td><td><b>Tit for Tat</b></td><td class="n"><b>4553</b></td><td class="barcell"><div class="bar" style="width:100%"></div></td><td class="n">0</td><td class="n">1</td><td class="n">6</td><td class="n">78.40</td><td class="n">21.60</td></tr>
+    <tr><td>2</td><td>Vengativa</td><td class="n">4261</td><td class="barcell"><div class="bar" style="width:93.6%"></div></td><td class="n">2</td><td class="n">1</td><td class="n">4</td><td class="n">57.37</td><td class="n">42.63</td></tr>
+    <tr><td>3</td><td>Pavlov <i>(propia)</i></td><td class="n">4184</td><td class="barcell"><div class="bar" style="width:91.9%"></div></td><td class="n">1</td><td class="n">2</td><td class="n">4</td><td class="n">76.86</td><td class="n">23.14</td></tr>
+    <tr><td>4</td><td>Ojo por Dos Ojos</td><td class="n">3950</td><td class="barcell"><div class="bar" style="width:86.8%"></div></td><td class="n">0</td><td class="n">3</td><td class="n">4</td><td class="n">67.94</td><td class="n">32.06</td></tr>
+    <tr><td>5</td><td>Sonda <i>(propia)</i></td><td class="n">3828</td><td class="barcell"><div class="bar" style="width:84.1%"></div></td><td class="n">2</td><td class="n">3</td><td class="n">2</td><td class="n">26.74</td><td class="n">73.26</td></tr>
+    <tr><td>6</td><td>Siempre Traicionar</td><td class="n">3750</td><td class="barcell"><div class="bar" style="width:82.4%"></div></td><td class="n">7</td><td class="n">0</td><td class="n">0</td><td class="n">0.00</td><td class="n">100.00</td></tr>
+    <tr><td>7</td><td>Aleatoria</td><td class="n">3734</td><td class="barcell"><div class="bar" style="width:82.0%"></div></td><td class="n">3</td><td class="n">2</td><td class="n">2</td><td class="n">50.06</td><td class="n">49.94</td></tr>
+    <tr><td>8</td><td>Siempre Cooperar</td><td class="n">3408</td><td class="barcell"><div class="bar" style="width:74.9%"></div></td><td class="n">0</td><td class="n">3</td><td class="n">4</td><td class="n">100.00</td><td class="n">0.00</td></tr>
+  </table>
+  <p style="font-size:9pt;color:var(--muted)">G = partidas ganadas, P = perdidas, E = empatadas. La barra es proporcional al puntaje de la ganadora.</p>
+
+  <h3>4.2 Puntos de cada estrategia contra cada rival</h3>
+  <p>Cada celda indica los puntos que obtuvo la estrategia de la <b>fila</b> contra la de la <b>columna</b> (valor de <code>puntosContra</code>).</p>
+  <table class="matrix">
+    <tr><th class="rowh">Fila \ Rival</th><th>S. Coop.</th><th>S. Trai.</th><th>Aleat.</th><th>TFT</th><th>Veng.</th><th>O2O</th><th>Pavlov</th><th>Sonda</th><th>Total</th></tr>
+    <tr><th class="rowh">Siempre Cooperar</th><td class="self">—</td><td class="l">0</td><td class="l">402</td><td class="t">750</td><td class="t">750</td><td class="t">750</td><td class="t">750</td><td class="l">6</td><th>3408</th></tr>
+    <tr><th class="rowh">Siempre Traicionar</th><td class="w">1250</td><td class="self">—</td><td class="w">726</td><td class="w">254</td><td class="w">254</td><td class="w">258</td><td class="w">750</td><td class="w">258</td><th>3750</th></tr>
+    <tr><th class="rowh">Aleatoria</th><td class="w">982</td><td class="l">131</td><td class="self">—</td><td class="t">555</td><td class="l">130</td><td class="w">776</td><td class="w">591</td><td class="t">569</td><th>3734</th></tr>
+    <tr><th class="rowh">Tit for Tat</th><td class="t">750</td><td class="l">249</td><td class="t">555</td><td class="self">—</td><td class="t">750</td><td class="t">750</td><td class="t">750</td><td class="t">749</td><th>4553</th></tr>
+    <tr><th class="rowh">Vengativa</th><td class="t">750</td><td class="l">249</td><td class="w">755</td><td class="t">750</td><td class="self">—</td><td class="t">750</td><td class="t">750</td><td class="w">257</td><th>4261</th></tr>
+    <tr><th class="rowh">Ojo por Dos Ojos</th><td class="t">750</td><td class="l">248</td><td class="l">451</td><td class="t">750</td><td class="t">750</td><td class="self">—</td><td class="t">750</td><td class="l">251</td><th>3950</th></tr>
+    <tr><th class="rowh">Pavlov</th><td class="t">750</td><td class="l">125</td><td class="l">556</td><td class="t">750</td><td class="t">750</td><td class="t">750</td><td class="self">—</td><td class="w">503</td><th>4184</th></tr>
+    <tr><th class="rowh">Sonda</th><td class="w">1246</td><td class="l">248</td><td class="t">569</td><td class="t">749</td><td class="l">252</td><td class="w">266</td><td class="l">498</td><td class="self">—</td><th>3828</th></tr>
+  </table>
+  <div class="legend"><span class="w">ganó la partida</span><span class="l">perdió la partida</span><span class="t">empate</span></div>
+  <p class="note"><b>Robustez del resultado:</b> la estrategia Aleatoria cambia en cada ejecución, así que el torneo se repitió 30 veces con semillas distintas (250 rondas). Tit for Tat ganó las 30 veces, con puntajes entre 4526 y 4587.</p>
+</section>
+
+<section>
+  <h3>4.3 ¿Cuál fue la estrategia ganadora?</h3>
+  <p>La ganadora fue <b>Tit for Tat</b> con <b>4553 puntos</b>, 292 puntos por encima de Vengativa (2.º lugar) y 369 por encima de Pavlov (3.º). Lo llamativo es que Tit for Tat <b>no ganó ninguna partida individual</b> (0 G, 1 P, 6 E).</p>
+
+  <h3>4.4 ¿Por qué obtuvo el mayor puntaje?</h3>
+  <ul>
+    <li><b>Es amable:</b> nunca traiciona primero, así que con todas las estrategias que cooperan (Siempre Cooperar, Vengativa, Ojo por Dos Ojos, Pavlov) mantiene la cooperación mutua las 250 rondas y obtiene el máximo posible de 750 puntos en cada partida.</li>
+    <li><b>Castiga de inmediato:</b> contra Siempre Traicionar solo pierde la primera ronda (0 puntos) y luego se protege: 249 contra 254. Nunca puede perder una partida por más de 5 puntos.</li>
+    <li><b>Perdona:</b> contra la Sonda, que la traiciona en la ronda 1, devuelve la traición una sola vez y en cuanto la Sonda coopera vuelve a cooperar (749 contra 749). Vengativa, en cambio, no perdona esa traición y queda atrapada en traiciones mutuas (257 contra 252), y ahí está la mayor parte de la diferencia entre el 1.º y el 2.º lugar.</li>
+    <li><b>Es clara:</b> como copia la jugada anterior, las estrategias reactivas “entienden” rápido que conviene cooperar con ella.</li>
+  </ul>
+  <p>El caso contrario es <b>Siempre Traicionar</b>: gana las 7 partidas (nunca saca menos que su rival) pero queda 6.ª, porque contra las estrategias que se defienden solo consigue 1 punto por ronda. <b>Ganar partidas no es lo mismo que ganar el torneo</b>: lo que cuenta es el total de puntos, y la cooperación mutua (3 + 3) produce mucho más que la traición mutua (1 + 1).</p>
+
+  <h3>4.5 ¿Contra qué estrategia obtuvo peores resultados?</h3>
+  <p>Contra <b>Siempre Traicionar</b>: 249 puntos, su único resultado perdido (249 – 254). La razón es su regla de la ronda 1: Tit for Tat siempre empieza cooperando y recibe 0 puntos mientras el rival recibe 5. Desde la ronda 2 copia la T del rival y ambos obtienen 1 punto por ronda (249 × 1). Contra un rival que nunca coopera no existe forma de recuperar esa primera ronda. El segundo peor resultado fue contra la <b>Aleatoria</b> (555), porque al copiar jugadas al azar alterna entre castigar y ser engañada.</p>
+
+  <h3>4.6 ¿Las estrategias propias funcionaron como esperábamos?</h3>
+  <p><b>Pavlov (3.º lugar, 4184 puntos): sí, en gran parte.</b> Coopera perfectamente con todas las estrategias amables (750 en cuatro partidas) y le gana a la Sonda (503 – 498), porque sale sola de las traiciones mutuas. Su debilidad, prevista en el diseño, apareció contra Siempre Traicionar: después de C-T cambia a T y después de T-T vuelve a C, así que alterna C, T, C, T… y solo obtiene 125 puntos, el peor resultado de todo el torneo entre las estrategias que se defienden. Esa sola partida le cuesta el 2.º lugar.</p>
+  <p><b>Sonda (5.º lugar, 3828 puntos): funcionó de forma parcial.</b></p>
+  <ul>
+    <li>Contra Siempre Cooperar funcionó exactamente como se esperaba: la detectó como ingenua y la explotó (1246 – 6).</li>
+    <li>Contra Tit for Tat logró volver a la cooperación (749 – 749).</li>
+    <li>Contra <b>Ojo por Dos Ojos</b> hubo un resultado inesperado: esta perdona una traición aislada, así que no se “defendió” en las rondas 2 y 3 y la Sonda pasó a modo explotar. Pero Ojo por Dos Ojos sí responde cuando recibe dos traiciones seguidas, y desde la ronda 6 la partida quedó en traición mutua. La Sonda ganó la partida (266 – 251), pero obtuvo 484 puntos menos que los 750 que habría conseguido cooperando. El error de diseño es que el modo explotar es permanente y no revisa si el rival empezó a defenderse después.</li>
+    <li>La traición de prueba de la ronda 1 fue muy costosa contra <b>Vengativa</b>: esta nunca perdona, así que la partida quedó en traición mutua desde la ronda 3 (252 – 257). Contra Pavlov entró en un ciclo C-T / T-C / T-T que da 6 puntos cada 3 rondas (498).</li>
+  </ul>
+  <p>La conclusión es que “probar” al rival tiene un costo: la ganancia contra Siempre Cooperar (unos +500 puntos respecto a cooperar) no compensa lo que se pierde contra las estrategias que castigan (unos −500 contra Vengativa, −480 contra Ojo por Dos Ojos y −250 contra Pavlov). Una mejora posible sería que, en modo explotar, la Sonda volviera al modo Tit for Tat si el rival traiciona dos veces seguidas.</p>
+</section>
+
+<!-- ===================== CONCLUSIONES ===================== -->
+<section class="pb">
+  <h2 id="conclusiones">5. Conclusiones</h2>
+  <ol>
+    <li>En el Dilema del Prisionero Iterado la cooperación es más rentable que la traición: las cuatro primeras estrategias del ranking son “amables” (nunca traicionan primero), y la que más traiciona, Siempre Traicionar, queda en el 6.º lugar a pesar de ganar todas sus partidas.</li>
+    <li>Tit for Tat ganó porque combina cuatro cualidades: es amable, castiga de inmediato, perdona rápido y es fácil de entender. Esto coincide con los resultados de los torneos de Robert Axelrod.</li>
+    <li>El perdón es importante: la diferencia principal entre Tit for Tat (1.º) y Vengativa (2.º) está en la partida contra la Sonda, donde una sola traición llevó a Vengativa a castigar para siempre.</li>
+    <li>Las estrategias que intentan explotar (Sonda) ganan mucho contra rivales ingenuos, pero pierden más contra rivales que castigan. En un torneo con estrategias variadas no conviene traicionar primero.</li>
+    <li>En cuanto a la programación, la separación en módulos, la <code>struct Estrategia</code> y el puntero a función <code>FuncionDecision</code> permitieron que <code>ejecutarPartida</code> funcione con cualquier estrategia sin <code>if</code>/<code>switch</code>, y que agregar una estrategia nueva solo requiera escribir su función y registrarla en <code>inicializarEstrategias</code>.</li>
+  </ol>
+
+  <h2 id="biblio">6. Bibliografía y fuentes</h2>
+  <ul>
+    <li>Axelrod, R. (1984). <i>The Evolution of Cooperation</i>. Basic Books.</li>
+    <li>Nowak, M., &amp; Sigmund, K. (1993). A strategy of win-stay, lose-shift that outperforms tit-for-tat in the Prisoner's Dilemma game. <i>Nature, 364</i>, 56–58.</li>
+    <li>Enunciado del Proyecto 1 y material del curso Programación II — UTEC.</li>
+    <li>Herramientas de IA: se usó un asistente de IA (Claude, de Anthropic) como apoyo para organizar el informe y verificar los resultados. Todos los resultados fueron comprobados ejecutando el programa y con los cálculos a mano del Anexo.</li>
+  </ul>
+
+  <h2 id="anexo">Anexo: compilación y pruebas</h2>
+<pre>g++ -std=c++11 -Wall -o torneo_dilema main_torneo.cpp lectura_rondas.cpp estrategias_juego.cpp \
+    matriz_pagos.cpp partida_iterada.cpp torneo_round_robin.cpp estadisticas_torneo.cpp reporte_resultados.cpp
+./torneo_dilema          (o bien:  make run)</pre>
+  <h3>Validación de la entrada</h3>
+  <table>
+    <tr><th>Entrada</th><th>Resultado obtenido</th></tr>
+    <tr><td><code>abc</code></td><td>“Entrada invalida. Debe ingresar un numero entero.” y vuelve a preguntar.</td></tr>
+    <tr><td><code>100</code></td><td>“El numero de rondas debe ser mayor a 200.” y vuelve a preguntar.</td></tr>
+    <tr><td><code>200</code></td><td>Mismo mensaje (200 no es mayor a 200).</td></tr>
+    <tr><td><code>250</code></td><td>Se acepta y se ejecuta el torneo.</td></tr>
+    <tr><td><code>5000</code>, <code>100000000</code></td><td>Se aceptan (no hay máximo) y el torneo termina correctamente. Con 100 000 000 rondas tarda unos 26 s y Tit for Tat suma 1 824 990 479 puntos; el puntaje posible llega a 3 500 000 000, por eso se usa <code>long long</code>.</td></tr>
+  </table>
+  <h3>Partidas deterministas comprobadas a mano (250 rondas)</h3>
+  <table>
+    <tr><th>Partida</th><th>Cálculo</th><th class="n">Esperado</th><th class="n">Programa</th></tr>
+    <tr><td>Siempre Traicionar vs Siempre Cooperar</td><td>250 × 5 / 250 × 0</td><td class="n">1250 / 0</td><td class="n">1250 / 0</td></tr>
+    <tr><td>Tit for Tat vs Siempre Traicionar</td><td>0 + 249 × 1 / 5 + 249 × 1</td><td class="n">249 / 254</td><td class="n">249 / 254</td></tr>
+    <tr><td>Ojo por Dos Ojos vs Siempre Traicionar</td><td>0 + 0 + 248 × 1 / 5 + 5 + 248</td><td class="n">248 / 258</td><td class="n">248 / 258</td></tr>
+    <tr><td>Pavlov vs Siempre Traicionar</td><td>125 × 0 + 125 × 1 / 125 × 5 + 125 × 1</td><td class="n">125 / 750</td><td class="n">125 / 750</td></tr>
+    <tr><td>Sonda vs Siempre Cooperar</td><td>5 + 3 + 3 + 247 × 5</td><td class="n">1246 / 6</td><td class="n">1246 / 6</td></tr>
+    <tr><td>Sonda vs Tit for Tat</td><td>5 + 0 + 248 × 3</td><td class="n">749 / 749</td><td class="n">749 / 749</td></tr>
+    <tr><td>Sonda vs Vengativa</td><td>5 + 0 + 0 + 247 × 1</td><td class="n">252 / 257</td><td class="n">252 / 257</td></tr>
+  </table>
+  <h3>Comprobaciones generales</h3>
+  <ul>
+    <li>28 partidas en total; en cada fila del ranking G + P + E = 7.</li>
+    <li><code>vecesC + vecesT = 7 × 250 = 1750</code> para cada estrategia, y % C + % T = 100.</li>
+    <li>Siempre Cooperar tiene 100 % de C y Siempre Traicionar 100 % de T; la Aleatoria queda cerca del 50 %.</li>
+  </ul>
+</section>
+
+</body>
+</html>

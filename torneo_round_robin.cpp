@@ -12,8 +12,8 @@ void ejecutarTorneo(Estrategia estrategias[], int numeroRondas)
     {
         for (int j = i + 1; j < NUM_ESTRATEGIAS; j++)
         {
-            int puntosI;
-            int puntosJ;
+            long long puntosI;
+            long long puntosJ;
             ejecutarPartida(estrategias[i], estrategias[j], numeroRondas, puntosI, puntosJ);
 
             // Se guarda el resultado desde el punto de vista de ambas

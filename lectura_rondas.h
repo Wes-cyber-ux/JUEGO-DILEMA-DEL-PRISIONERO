@@ -6,7 +6,7 @@
 #define LECTURA_RONDAS_H
 
 // Pide al usuario el numero de rondas hasta que ingrese un entero valido
-// entre MIN_RONDAS y MAX_RONDAS, y lo devuelve.
+// mayor o igual a MIN_RONDAS (es decir, mayor a 200), y lo devuelve.
 int leerNumeroRondas();
 
 #endif // LECTURA_RONDAS_H

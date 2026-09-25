@@ -19,8 +19,8 @@ void calcularEstadisticas(Estrategia estrategias[])
                 continue;   // no hubo partida contra si misma
             }
 
-            int misPuntos   = estrategias[i].puntosContra[j];
-            int puntosRival = estrategias[j].puntosContra[i];
+            long long misPuntos   = estrategias[i].puntosContra[j];
+            long long puntosRival = estrategias[j].puntosContra[i];
 
             if (misPuntos > puntosRival)
             {
@@ -37,7 +37,7 @@ void calcularEstadisticas(Estrategia estrategias[])
         }
 
         // Porcentajes sobre el total de jugadas hechas en el torneo
-        int totalJugadas = estrategias[i].vecesC + estrategias[i].vecesT;
+        long long totalJugadas = estrategias[i].vecesC + estrategias[i].vecesT;
         if (totalJugadas > 0)
         {
             estrategias[i].porcentajeC = 100.0 * estrategias[i].vecesC / totalJugadas;
@@ -60,8 +60,8 @@ void ordenarRanking(const Estrategia estrategias[], int ranking[])
     {
         for (int k = 0; k < NUM_ESTRATEGIAS - 1 - pasada; k++)
         {
-            int puntajeActual    = estrategias[ranking[k]].puntajeTotal;
-            int puntajeSiguiente = estrategias[ranking[k + 1]].puntajeTotal;
+            long long puntajeActual    = estrategias[ranking[k]].puntajeTotal;
+            long long puntajeSiguiente = estrategias[ranking[k + 1]].puntajeTotal;
 
             if (puntajeActual < puntajeSiguiente)
             {

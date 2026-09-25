@@ -18,12 +18,15 @@ void registrarJugada(Estrategia &estrategia, char jugada)
 }
 
 void ejecutarPartida(Estrategia &estrategiaA, Estrategia &estrategiaB, int numeroRondas,
-                     int &puntosPartidaA, int &puntosPartidaB)
+                     long long &puntosPartidaA, long long &puntosPartidaB)
 {
     // Historial de jugadas de esta partida. Se crea de nuevo en cada partida,
     // asi ninguna estrategia "recuerda" lo que paso contra otro rival.
-    char historialA[MAX_RONDAS];
-    char historialB[MAX_RONDAS];
+    // Como el numero de rondas no tiene maximo, su tamano se conoce recien
+    // al ejecutar: por eso se reservan con new (memoria dinamica) y se
+    // liberan con delete[] al terminar la partida.
+    char *historialA = new char[numeroRondas];
+    char *historialB = new char[numeroRondas];
 
     puntosPartidaA = 0;
     puntosPartidaB = 0;
@@ -49,4 +52,7 @@ void ejecutarPartida(Estrategia &estrategiaA, Estrategia &estrategiaB, int numer
         puntosPartidaA += puntosRondaA;
         puntosPartidaB += puntosRondaB;
     }
+
+    delete[] historialA;
+    delete[] historialB;
 }

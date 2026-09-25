@@ -11,11 +11,10 @@
 // Cantidad de estrategias que compiten (6 obligatorias + 2 propias)
 const int NUM_ESTRATEGIAS = 8;
 
-// Limites del numero de rondas por partida.
-// El enunciado exige mas de 200 rondas; el maximo define el tamano de los
-// arreglos de historial que se usan en cada partida.
+// Minimo de rondas por partida: el enunciado exige mas de 200 rondas.
+// No hay maximo: los arreglos de historial se crean en cada partida con el
+// tamano exacto que pidio el usuario (ver partida_iterada.cpp).
 const int MIN_RONDAS = 201;
-const int MAX_RONDAS = 1000;
 
 // Tipo "puntero a funcion de decision".
 // Todas las estrategias tienen esta misma firma, asi la partida puede llamar
@@ -35,11 +34,14 @@ struct Estrategia
     std::string     nombre;
     FuncionDecision decidir;   // funcion que elige 'C' o 'T' en cada ronda
 
-    int puntajeTotal;                     // suma de puntos de todas sus partidas
-    int puntosContra[NUM_ESTRATEGIAS];    // puntos obtenidos contra cada rival
+    // Los puntajes y contadores son long long porque, como no hay limite de
+    // rondas, con int se desbordarian (puntajeTotal puede llegar a
+    // 7 partidas x 5 puntos x numeroRondas).
+    long long puntajeTotal;                     // suma de puntos de todas sus partidas
+    long long puntosContra[NUM_ESTRATEGIAS];    // puntos obtenidos contra cada rival
 
-    int vecesC;                // total de veces que eligio cooperar
-    int vecesT;                // total de veces que eligio traicionar
+    long long vecesC;          // total de veces que eligio cooperar
+    long long vecesT;          // total de veces que eligio traicionar
 
     int victorias;             // partidas con mas puntos que el rival
     int derrotas;              // partidas con menos puntos que el rival

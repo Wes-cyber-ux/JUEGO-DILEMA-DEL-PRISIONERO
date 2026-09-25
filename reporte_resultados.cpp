@@ -86,7 +86,7 @@ void mostrarRanking(const Estrategia estrategias[], const int ranking[], int num
 
 void mostrarGanador(const Estrategia estrategias[], const int ranking[])
 {
-    int puntajeMaximo = estrategias[ranking[0]].puntajeTotal;
+    long long puntajeMaximo = estrategias[ranking[0]].puntajeTotal;
 
     cout << "\n*** GANADORA DEL TORNEO: ";
 
